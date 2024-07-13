@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -7,6 +7,7 @@ import ChatInput from '@/components/ChatInput';
 import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
+import AIPersonalityCustomizer from '@/components/AIPersonalityCustomizer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -43,7 +44,12 @@ export default function Home() {
   const { exportConversation, shareCodeSnippet } = useExportShare();
   const { toast } = useToast();
 
-  const [showOnboarding, setShowOnboarding] = React.useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [aiPersonality, setAIPersonality] = useState({
+    name: 'AI Assistant',
+    tone: 50,
+    verbosity: 50,
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.darkMode);
@@ -98,12 +104,21 @@ export default function Home() {
     }
   };
 
+  const handlePersonalityChange = (newPersonality) => {
+    setAIPersonality(newPersonality);
+    toast({
+      title: 'AI Personality Updated',
+      description: `The AI personality has been updated to ${newPersonality.name}.`,
+    });
+  };
+
   return (
     <ErrorBoundary>
       <Layout>
         <div className="flex flex-col h-screen w-full">
           <Header onExport={handleExport}>
             <SettingsMenu settings={settings} onSettingsChange={handleSettingsChange} />
+            <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={handlePersonalityChange} />
             <HelpModal />
             <AlertDialog>
               <AlertDialogTrigger asChild>
