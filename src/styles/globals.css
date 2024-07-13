@@ -236,3 +236,13 @@ code {
 .code-block .code-block-icons button {
   @apply text-gray-300 hover:bg-gray-700/50;
 }
+
+/* Chat message styling */
+.user-message {
+  @apply py-1.5 px-3;
+}
+
+/* Loading skeleton */
+.loading-skeleton {
+  @apply animate-pulse bg-gray-300 dark:bg-gray-700 rounded-md;
+}
