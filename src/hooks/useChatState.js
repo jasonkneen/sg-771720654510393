@@ -1,20 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
-import logError from '@/utils/errorLogger';
-
-const simulateAIResponse = (message, context) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const responses = [
-        `Based on your question "${message}", here's a simple React component that demonstrates the concept:\n\`\`\`jsx\nimport React from 'react';\n\nconst ExampleComponent = () => {\n  return (\n    <div>\n      <h1>Hello, World!</h1>\n      <p>This is a simple React component.</p>\n    </div>\n  );\n};\n\nexport default ExampleComponent;\n\`\`\``,
-        `To solve the problem you described ("${message}"), you can use a dynamic programming approach. Here's a Python implementation:\n\`\`\`python\ndef solve_problem(input_data):\n    # Initialize dynamic programming table\n    dp = [0] * len(input_data)\n    \n    # Base cases\n    dp[0] = input_data[0]\n    dp[1] = max(input_data[0], input_data[1])\n    \n    # Fill the dp table\n    for i in range(2, len(input_data)):\n        dp[i] = max(dp[i-1], dp[i-2] + input_data[i])\n    \n    return dp[-1]\n\`\`\``,
-        `For your CSS issue ("${message}"), try using flexbox. Here's an example:\n\`\`\`css\n.container {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.item {\n  flex: 1;\n  margin: 0 10px;\n}\n\`\`\``,
-      ];
-      resolve(responses[Math.floor(Math.random() * responses.length)]);
-    }, 1000 + Math.random() * 2000);
-  });
-};
+import useApi from './useApi';
 
 export const useChatState = (initialSettings = { autoSave: true }) => {
   const [chatHistory, setChatHistory] = useState(() => loadChatSessions());
@@ -25,6 +12,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
   const [settings, setSettings] = useState(initialSettings);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
+  const api = useApi();
 
   useEffect(() => {
     if (settings.autoSave) {
@@ -56,9 +44,8 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
       }, 200);
 
       try {
-        const context = chatHistory[currentChatIndex].messages.slice(-5);
-        const aiResponse = await simulateAIResponse(input, context);
-        const aiMessage = { sender: 'ai', content: aiResponse };
+        const response = await api.post('/api/chat', { message: input });
+        const aiMessage = { sender: 'ai', content: response.response };
         setChatHistory((prev) => {
           const newHistory = [...prev];
           newHistory[currentChatIndex] = {
@@ -68,7 +55,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
           return newHistory;
         });
       } catch (error) {
-        logError(error, { context: 'AI Response' });
+        console.error('Error in AI response:', error);
         toast({
           title: 'Error',
           description: 'Failed to get AI response. Please try again.',
@@ -83,7 +70,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
         }, 500);
       }
     }
-  }, [input, isLoading, currentChatIndex, chatHistory, toast]);
+  }, [input, isLoading, currentChatIndex, chatHistory, toast, api]);
 
   const handleNewChat = useCallback(() => {
     const newChat = { id: Date.now(), name: `New Chat ${chatHistory.length + 1}`, messages: [] };
