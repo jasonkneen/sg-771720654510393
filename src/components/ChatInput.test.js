@@ -1,6 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import ChatInput from './ChatInput';
+
+jest.useFakeTimers();
 
 describe('ChatInput', () => {
   const mockHandleSend = jest.fn();
@@ -38,14 +40,35 @@ describe('ChatInput', () => {
     expect(screen.getByText('Sending...')).toBeDisabled();
   });
 
-  it('updates input when typing', () => {
+  it('debounces input changes', () => {
     render(<ChatInput input="" setInput={mockSetInput} handleSend={mockHandleSend} isLoading={false} />);
-    fireEvent.change(screen.getByPlaceholderText('Type your message...'), { target: { value: 'Hello' } });
+    const input = screen.getByPlaceholderText('Type your message...');
+
+    fireEvent.change(input, { target: { value: 'H' } });
+    fireEvent.change(input, { target: { value: 'He' } });
+    fireEvent.change(input, { target: { value: 'Hel' } });
+    fireEvent.change(input, { target: { value: 'Hell' } });
+    fireEvent.change(input, { target: { value: 'Hello' } });
+
+    expect(mockSetInput).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(mockSetInput).toHaveBeenCalledTimes(1);
     expect(mockSetInput).toHaveBeenCalledWith('Hello');
   });
 
   it('shows character count', () => {
     render(<ChatInput input="Hello" setInput={mockSetInput} handleSend={mockHandleSend} isLoading={false} maxLength={500} />);
     expect(screen.getByText('5/500 characters')).toBeInTheDocument();
+  });
+
+  it('shows error state when over character limit', () => {
+    const longInput = 'a'.repeat(501);
+    render(<ChatInput input={longInput} setInput={mockSetInput} handleSend={mockHandleSend} isLoading={false} maxLength={500} />);
+    expect(screen.getByText('501/500 characters')).toHaveClass('text-destructive');
+    expect(screen.getByText('Send')).toBeDisabled();
   });
 });
