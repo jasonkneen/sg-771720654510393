@@ -85,7 +85,7 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
               className="w-full justify-start"
               onClick={() => handleSelect(index)}
             >
-              {chat.name}
+              {chat.name} ({chat.messages.length})
             </Button>
             <div>
               <Button
