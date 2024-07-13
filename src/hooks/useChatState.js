@@ -16,7 +16,7 @@ const simulateAIResponse = (message, context) => {
   });
 };
 
-export const useChatState = (initialSettings) => {
+export const useChatState = (initialSettings = { autoSave: true }) => {
   const [chatHistory, setChatHistory] = useState(() => loadChatSessions());
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [input, setInput] = useState('');
@@ -30,7 +30,7 @@ export const useChatState = (initialSettings) => {
     if (settings.autoSave) {
       saveChatSessions(chatHistory);
     }
-  }, [chatHistory, settings.autoSave]);
+  }, [chatHistory, settings]);
 
   const handleSend = useCallback(async (e) => {
     e.preventDefault();
