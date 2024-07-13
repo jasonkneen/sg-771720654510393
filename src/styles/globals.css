@@ -109,7 +109,7 @@
 
 /* Custom styles for code blocks */
 pre {
-  @apply p-4 rounded-md overflow-x-auto border border-border;
+  @apply p-4 rounded-md overflow-x-auto;
 }
 
 code {
@@ -214,4 +214,25 @@ code {
   html {
     font-size: 18px;
   }
+}
+
+/* Code block styling */
+.code-block {
+  @apply relative;
+}
+
+.code-block pre {
+  @apply bg-black text-white rounded-md p-4 my-2;
+}
+
+.code-block .code-block-icons {
+  @apply absolute top-2 right-2 space-x-2 opacity-0 transition-opacity duration-200;
+}
+
+.code-block:hover .code-block-icons {
+  @apply opacity-100;
+}
+
+.code-block .code-block-icons button {
+  @apply text-gray-300 hover:bg-gray-700/50;
 }
