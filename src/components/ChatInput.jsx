@@ -6,10 +6,18 @@ import { Send, Loader2 } from 'lucide-react';
 const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) => {
   const characterCount = input.length;
   const isOverLimit = characterCount > maxLength;
+  const isInputValid = input.trim().length > 0 && !isOverLimit;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isInputValid && !isLoading) {
+      handleSend(e);
+    }
+  };
 
   return (
     <div className="p-4 border-t bg-background">
-      <form onSubmit={handleSend} className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-2">
         <div className="flex space-x-2">
           <Input
             type="text"
@@ -20,7 +28,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
             disabled={isLoading}
             maxLength={maxLength}
           />
-          <Button type="submit" disabled={isLoading || isOverLimit}>
+          <Button type="submit" disabled={!isInputValid || isLoading}>
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (

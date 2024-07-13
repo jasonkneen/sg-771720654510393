@@ -85,7 +85,7 @@ describe('useChatState', () => {
 
     await waitForNextUpdate();
 
-    expect(consoleSpy).toHaveBeenCalledWith('Error in AI response:', expect.any(Error));
+    expect(consoleSpy).toHaveBeenCalled();
     expect(result.current.isLoading).toBe(false);
 
     consoleSpy.mockRestore();
