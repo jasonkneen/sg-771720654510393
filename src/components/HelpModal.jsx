@@ -9,6 +9,7 @@ const HelpModal = () => {
     { key: 'Ctrl/Cmd + N', description: 'New chat' },
     { key: 'Ctrl/Cmd + E', description: 'Export chat' },
     { key: 'Ctrl/Cmd + /', description: 'Open help modal' },
+    { key: 'Esc', description: 'Close modal' },
   ];
 
   return (

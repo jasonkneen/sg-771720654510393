@@ -13,6 +13,8 @@ import { Progress } from '@/components/ui/progress';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import useChatState from '@/hooks/useChatState';
+import useExportShare from '@/hooks/useExportShare';
+import { useToast } from '@/components/ui/use-toast';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
   loading: () => <p>Loading chat...</p>,
@@ -38,6 +40,9 @@ export default function Home() {
     handleSettingsChange,
   } = useChatState({ darkMode: false, autoSave: true, fontSize: 'medium', language: 'en' });
 
+  const { exportConversation, shareCodeSnippet } = useExportShare();
+  const { toast } = useToast();
+
   const [showOnboarding, setShowOnboarding] = React.useState(true);
 
   useEffect(() => {
@@ -54,7 +59,7 @@ export default function Home() {
         handleNewChat();
       } else if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        // Implement export functionality
+        exportConversation(chatHistory[currentChatIndex]);
       } else if (e.key === '/' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         // Open help modal
@@ -65,13 +70,39 @@ export default function Home() {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [handleSend, handleNewChat]);
+  }, [handleSend, handleNewChat, exportConversation, chatHistory, currentChatIndex]);
+
+  const handleExport = () => {
+    try {
+      exportConversation(chatHistory[currentChatIndex]);
+    } catch (error) {
+      console.error('Error exporting conversation:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'An error occurred while exporting the conversation. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleShare = (snippet) => {
+    try {
+      shareCodeSnippet(snippet);
+    } catch (error) {
+      console.error('Error sharing code snippet:', error);
+      toast({
+        title: 'Share Failed',
+        description: 'An error occurred while sharing the code snippet. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <ErrorBoundary>
       <Layout>
         <div className="flex flex-col h-screen w-full">
-          <Header onExport={() => {/* Implement export functionality */}}>
+          <Header onExport={handleExport}>
             <SettingsMenu settings={settings} onSettingsChange={handleSettingsChange} />
             <HelpModal />
             <AlertDialog>
@@ -121,7 +152,7 @@ export default function Home() {
                     exit={{ opacity: 0 }}
                     className="flex-1"
                   >
-                    <ChatWindow messages={chatHistory[currentChatIndex].messages} />
+                    <ChatWindow messages={chatHistory[currentChatIndex].messages} onShare={handleShare} />
                   </motion.div>
                 )}
               </AnimatePresence>
