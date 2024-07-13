@@ -109,7 +109,7 @@
 
 /* Custom styles for code blocks */
 pre {
-  @apply p-4 rounded-md overflow-x-auto;
+  @apply p-4 rounded-md overflow-x-auto border border-border;
 }
 
 code {
