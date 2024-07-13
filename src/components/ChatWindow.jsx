@@ -49,10 +49,10 @@ const ChatWindow = ({ messages }) => {
       if (part.type === 'code') {
         return (
           <div key={index} className="relative my-4">
-            <pre className="p-6 bg-muted rounded-lg overflow-x-auto">
+            <pre className="p-6 bg-muted rounded-md overflow-x-auto">
               <code className={`language-${part.language} text-sm`}>{part.content}</code>
             </pre>
-            <div className="absolute top-4 right-4 space-x-2">
+            <div className="absolute top-2 right-2 space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <CopyButton content={part.content} />
               <ShareButton content={part.content} />
             </div>
@@ -77,7 +77,7 @@ const ChatWindow = ({ messages }) => {
         size="sm"
         variant="ghost"
         onClick={handleCopy}
-        className="hover:bg-background/50"
+        className="hover:bg-background/50 p-1"
         aria-label={copied ? "Copied" : "Copy code"}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -91,7 +91,7 @@ const ChatWindow = ({ messages }) => {
         size="sm"
         variant="ghost"
         onClick={() => shareSnippet(content)}
-        className="hover:bg-background/50"
+        className="hover:bg-background/50 p-1"
         aria-label="Share code snippet"
       >
         <Share className="h-4 w-4" />
@@ -115,7 +115,7 @@ const ChatWindow = ({ messages }) => {
                 transition={{ duration: 0.3 }}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} group`}>
                   <Avatar className="w-8 h-8 mt-1">
                     <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
                     <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
