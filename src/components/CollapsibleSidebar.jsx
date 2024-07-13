@@ -25,16 +25,16 @@ const CollapsibleSidebar = ({ chatHistory, onNewChat, onSelectChat, onRenameChat
 
   return (
     <motion.div
-      className="relative bg-muted/50"
+      className="relative bg-muted/50 border-r border-border"
       animate={{ width: isCollapsed ? '60px' : '256px' }}
       transition={{ duration: 0.3 }}
     >
       {isCollapsed ? (
         <div className="h-full flex flex-col items-center py-4">
-          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mb-4">
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onNewChat} className="mt-4">
+          <Button variant="ghost" size="icon" onClick={onNewChat} className="mb-4">
             <PlusCircle className="h-4 w-4" />
           </Button>
         </div>
@@ -63,7 +63,7 @@ const CollapsibleSidebar = ({ chatHistory, onNewChat, onSelectChat, onRenameChat
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-2">
               {filteredChats.map((chat, index) => (
-                <div key={chat.id} className="flex items-center space-x-2">
+                <div key={chat.id} className="flex items-center space-x-2 group">
                   <Button
                     variant={currentChatIndex === index ? "secondary" : "ghost"}
                     className="w-full justify-start"
@@ -77,25 +77,30 @@ const CollapsibleSidebar = ({ chatHistory, onNewChat, onSelectChat, onRenameChat
                         onBlur={() => setEditingIndex(null)}
                         onKeyPress={(e) => e.key === 'Enter' && setEditingIndex(null)}
                         autoFocus
+                        className="w-full"
                       />
                     ) : (
                       <span className="truncate">{chat.name}</span>
                     )}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditingIndex(index)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteChat(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingIndex(index)}
+                      className="h-8 w-8"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDeleteChat(index)}
+                      className="h-8 w-8"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

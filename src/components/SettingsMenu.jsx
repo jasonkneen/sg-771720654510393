@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings } from 'lucide-react';
 
 const SettingsMenu = ({ settings, onSettingsChange }) => {
@@ -33,6 +34,40 @@ const SettingsMenu = ({ settings, onSettingsChange }) => {
               checked={settings.autoSave}
               onCheckedChange={(checked) => onSettingsChange({ ...settings, autoSave: checked })}
             />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="font-size">Font Size</Label>
+            <Select
+              id="font-size"
+              value={settings.fontSize}
+              onValueChange={(value) => onSettingsChange({ ...settings, fontSize: value })}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select font size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="small">Small</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="large">Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="language">Language</Label>
+            <Select
+              id="language"
+              value={settings.language}
+              onValueChange={(value) => onSettingsChange({ ...settings, language: value })}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </DialogContent>
