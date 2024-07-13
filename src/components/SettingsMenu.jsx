@@ -36,6 +36,14 @@ const SettingsMenu = ({ settings, onSettingsChange }) => {
             />
           </div>
           <div className="flex items-center justify-between">
+            <Label htmlFor="debug-mode">Debug Mode</Label>
+            <Switch
+              id="debug-mode"
+              checked={settings.debugMode}
+              onCheckedChange={(checked) => onSettingsChange({ ...settings, debugMode: checked })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
             <Label htmlFor="font-size">Font Size</Label>
             <Select
               id="font-size"
