@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { handleError } from '@/utils/errorHandler';
+import { logError } from '@/utils/errorLogger';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -14,7 +14,7 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
-    handleError(error, 'ErrorBoundary caught an error', errorInfo);
+    logError(error, { componentStack: errorInfo.componentStack });
   }
 
   render() {
