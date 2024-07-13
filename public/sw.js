@@ -33,3 +33,13 @@ self.addEventListener('activate', function(event) {
     })
   );
 });
+
+// Handle errors in service worker
+self.addEventListener('error', function(event) {
+  console.error('Service Worker error:', event.error);
+});
+
+// Handle unhandled rejections
+self.addEventListener('unhandledrejection', function(event) {
+  console.error('Unhandled rejection in Service Worker:', event.reason);
+});
