@@ -8,6 +8,8 @@ import ChatTimestamp from './ChatTimestamp';
 import CodeSnippet from './CodeSnippet';
 import EmojiReactions from './EmojiReactions';
 import { handleComponentError } from '@/utils/componentErrorHandler';
+import performanceMonitor from '@/utils/performanceMonitor';
+import { logError } from '@/utils/errorLogger';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +36,7 @@ const ChatMessage = ({
   const [editedContent, setEditedContent] = useState(message.content);
 
   const renderMessageContent = () => {
+    performanceMonitor.start('renderMessageContent');
     try {
       const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
       const parts = [];
@@ -52,7 +55,7 @@ const ChatMessage = ({
         parts.push({ type: 'text', content: message.content.slice(lastIndex) });
       }
 
-      return parts.map((part, index) => {
+      const result = parts.map((part, index) => {
         if (part.type === 'code') {
           return (
             <CodeSnippet
@@ -65,15 +68,25 @@ const ChatMessage = ({
         }
         return <p key={index} className="my-2">{part.content}</p>;
       });
+      performanceMonitor.end('renderMessageContent');
+      return result;
     } catch (error) {
       handleComponentError(error, 'Rendering message content');
+      logError(error, { context: 'ChatMessage - renderMessageContent' });
       return <p>Error rendering message content. Please try refreshing the page.</p>;
     }
   };
 
   const handleEditSubmit = () => {
-    onEdit(message.id, editedContent);
-    setEditingMessageId(null);
+    performanceMonitor.start('handleEditSubmit');
+    try {
+      onEdit(message.id, editedContent);
+      setEditingMessageId(null);
+    } catch (error) {
+      handleComponentError(error, 'Submitting message edit');
+      logError(error, { context: 'ChatMessage - handleEditSubmit' });
+    }
+    performanceMonitor.end('handleEditSubmit');
   };
 
   const handleCancelEdit = () => {
