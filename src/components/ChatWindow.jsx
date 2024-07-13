@@ -7,15 +7,19 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
+import performanceMonitor from '@/utils/performanceMonitor';
+import { logError } from '@/utils/errorLogger';
 
 const ChatWindow = React.memo(({ messages, onShare }) => {
   const scrollAreaRef = useRef(null);
 
   useEffect(() => {
+    performanceMonitor.start('ChatWindow-useEffect');
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo(0, scrollAreaRef.current.scrollHeight);
     }
     hljs.highlightAll();
+    performanceMonitor.end('ChatWindow-useEffect');
   }, [messages]);
 
   const copyToClipboard = (text) => {
@@ -23,6 +27,7 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
   };
 
   const renderMessage = (message) => {
+    performanceMonitor.start('renderMessage');
     const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
     const parts = [];
     let lastIndex = 0;
@@ -40,7 +45,7 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
       parts.push({ type: 'text', content: message.content.slice(lastIndex) });
     }
 
-    return parts.map((part, index) => {
+    const result = parts.map((part, index) => {
       if (part.type === 'code') {
         return (
           <div key={index} className="relative my-4 code-block">
@@ -56,6 +61,8 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
       }
       return <p key={index} className="my-2">{part.content}</p>;
     });
+    performanceMonitor.end('renderMessage');
+    return result;
   };
 
   const CopyButton = React.memo(({ content }) => {
@@ -95,7 +102,8 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
   });
 
   const memoizedMessages = useMemo(() => {
-    return messages.map((message, index) => (
+    performanceMonitor.start('memoizedMessages');
+    const result = messages.map((message, index) => (
       <motion.div
         key={index}
         initial={{ opacity: 0, y: 20 }}
@@ -115,6 +123,8 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
         </div>
       </motion.div>
     ));
+    performanceMonitor.end('memoizedMessages');
+    return result;
   }, [messages, onShare]);
 
   return (
