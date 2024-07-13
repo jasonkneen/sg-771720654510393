@@ -10,6 +10,7 @@ import AIPersonalityCustomizer from '@/components/AIPersonalityCustomizer';
 import AIPersonalityDisplay from '@/components/AIPersonalityDisplay';
 import ColorSchemeCustomizer from '@/components/ColorSchemeCustomizer';
 import ChatSearch from '@/components/ChatSearch';
+import LoadingState from '@/components/LoadingState';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -25,27 +26,13 @@ import { handleError } from '@/utils/errorHandler';
 
 const CodeDiffViewer = dynamic(() => import('@/components/CodeDiffViewer'), {
   ssr: false,
-  loading: () => <p>Loading Code Diff Viewer...</p>,
+  loading: () => <LoadingState message="Loading Code Diff Viewer..." />,
 });
 
 const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
-  loading: () => <ChatSkeleton />,
+  loading: () => <LoadingState message="Loading Chat..." />,
   ssr: false,
 });
-
-const ChatSkeleton = () => (
-  <div className="flex-1 p-4 space-y-4">
-    {[...Array(3)].map((_, i) => (
-      <div key={i} className="flex items-start space-x-2">
-        <div className="w-8 h-8 rounded-full loading-skeleton"></div>
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-3/4 loading-skeleton"></div>
-          <div className="h-4 w-1/2 loading-skeleton"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
 
 export default function Home() {
   const {
@@ -226,7 +213,7 @@ export default function Home() {
                     exit={{ opacity: 0 }}
                     className="flex-1 flex items-center justify-center"
                   >
-                    <p className="text-muted-foreground">Initializing chat...</p>
+                    <LoadingState message="Initializing chat..." />
                   </motion.div>
                 ) : isSwitchingChat ? (
                   <motion.div
@@ -236,7 +223,7 @@ export default function Home() {
                     exit={{ opacity: 0 }}
                     className="flex-1 flex items-center justify-center"
                   >
-                    <p className="text-muted-foreground">Loading chat...</p>
+                    <LoadingState message="Loading chat..." />
                   </motion.div>
                 ) : (
                   <motion.div
