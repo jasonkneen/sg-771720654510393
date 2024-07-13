@@ -7,8 +7,12 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
-import { FixedSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+
+let List, AutoSizer;
+if (typeof window !== 'undefined') {
+  List = require('react-window').FixedSizeList;
+  AutoSizer = require('react-virtualized-auto-sizer').default;
+}
 
 const ChatWindow = React.memo(({ messages, onShare }) => {
   const scrollAreaRef = useRef(null);
@@ -122,21 +126,33 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
     );
   });
 
-  const memoizedMessageList = useMemo(() => (
-    <AutoSizer>
-      {({ height, width }) => (
-        <List
-          ref={listRef}
-          height={height}
-          itemCount={messages.length}
-          itemSize={100}
-          width={width}
-        >
-          {MessageItem}
-        </List>
-      )}
-    </AutoSizer>
-  ), [messages]);
+  const memoizedMessageList = useMemo(() => {
+    if (!List || !AutoSizer) {
+      return (
+        <div className="space-y-4">
+          {messages.map((message, index) => (
+            <MessageItem key={index} index={index} style={{}} />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <AutoSizer>
+        {({ height, width }) => (
+          <List
+            ref={listRef}
+            height={height}
+            itemCount={messages.length}
+            itemSize={100}
+            width={width}
+          >
+            {MessageItem}
+          </List>
+        )}
+      </AutoSizer>
+    );
+  }, [messages, List, AutoSizer]);
 
   return (
     <ScrollArea className="flex-1 p-4 chat-background" ref={scrollAreaRef}>
