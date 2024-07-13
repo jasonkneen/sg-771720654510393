@@ -8,6 +8,7 @@ import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
 import AIPersonalityCustomizer from '@/components/AIPersonalityCustomizer';
+import AIPersonalityDisplay from '@/components/AIPersonalityDisplay';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -19,9 +20,23 @@ import useAIPersonality from '@/hooks/useAIPersonality';
 import { useToast } from '@/components/ui/use-toast';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
-  loading: () => <p>Loading chat...</p>,
+  loading: () => <ChatSkeleton />,
   ssr: false,
 });
+
+const ChatSkeleton = () => (
+  <div className="flex-1 p-4 space-y-4">
+    {[...Array(3)].map((_, i) => (
+      <div key={i} className="flex items-start space-x-2">
+        <div className="w-8 h-8 rounded-full loading-skeleton"></div>
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-3/4 loading-skeleton"></div>
+          <div className="h-4 w-1/2 loading-skeleton"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 export default function Home() {
   const {
@@ -201,6 +216,9 @@ export default function Home() {
                 isLoading={isLoading}
                 maxLength={500}
               />
+            </div>
+            <div className="w-64 p-4 border-l border-border">
+              <AIPersonalityDisplay personality={aiPersonality} />
             </div>
           </div>
         </div>
