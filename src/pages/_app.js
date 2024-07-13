@@ -1,8 +1,9 @@
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AppProvider } from '@/context/AppContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function clearLocalStorage() {
   if (typeof window !== 'undefined') {
@@ -13,9 +14,27 @@ function clearLocalStorage() {
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
+  const [isServerHealthy, setIsServerHealthy] = useState(true);
 
   useEffect(() => {
     clearLocalStorage();
+
+    const checkServerHealth = async () => {
+      try {
+        const res = await fetch('/api/health');
+        if (!res.ok) {
+          setIsServerHealthy(false);
+        }
+      } catch (error) {
+        console.error('Server health check failed:', error);
+        setIsServerHealthy(false);
+      }
+    };
+
+    checkServerHealth();
+    const healthCheckInterval = setInterval(checkServerHealth, 60000); // Check every minute
+
+    return () => clearInterval(healthCheckInterval);
   }, []);
 
   useEffect(() => {
@@ -30,10 +49,16 @@ export default function App({ Component, pageProps }) {
     };
   }, [router.events]);
 
+  if (!isServerHealthy) {
+    return <div>Server is currently unavailable. Please try again later.</div>;
+  }
+
   return (
-    <AppProvider>
-      <Component {...pageProps} />
-      <Toaster />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <Component {...pageProps} />
+        <Toaster />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
