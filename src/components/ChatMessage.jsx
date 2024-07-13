@@ -40,7 +40,7 @@ const ChatMessage = ({ message, onShare }) => {
       });
     } catch (error) {
       handleComponentError(error, 'Rendering message content');
-      return <p>Error rendering message content</p>;
+      return <p>Error rendering message content. Please try refreshing the page.</p>;
     }
   };
 
