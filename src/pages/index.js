@@ -17,7 +17,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import useChatState from '@/hooks/useChatState';
 import useExportShare from '@/hooks/useExportShare';
-import useAIPersonality from '@/hooks/useAIPersonality';
+import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
+import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import logger from '@/utils/logger';
 
@@ -48,7 +49,6 @@ export default function Home() {
     setInput,
     isLoading,
     isSwitchingChat,
-    settings,
     progress,
     handleSend,
     handleNewChat,
@@ -56,25 +56,16 @@ export default function Home() {
     handleRenameChat,
     handleDeleteChat,
     handleClearHistory,
-    handleSettingsChange,
-  } = useChatState({ darkMode: false, autoSave: true, fontSize: 'medium', language: 'en' });
+  } = useChatState();
 
   const { exportConversation, shareCodeSnippet } = useExportShare();
-  const [aiPersonality, updateAIPersonality] = useAIPersonality({
-    name: 'AI Assistant',
-    tone: 50,
-    verbosity: 50,
-  });
-  const [colorScheme, setColorScheme] = useState({
-    primary: '#3b82f6',
-    secondary: '#10b981',
-    background: '#ffffff',
-    text: '#1f2937',
-  });
+  const { settings, updateSettings, aiPersonality, updateAIPersonality, colorScheme, updateColorScheme } = useAppContext();
   const { toast } = useToast();
 
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  useKeyboardNavigation();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.darkMode);
@@ -88,28 +79,6 @@ export default function Home() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        handleSend(e);
-      } else if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        handleNewChat();
-      } else if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        exportConversation(chatHistory[currentChatIndex]);
-      } else if (e.key === '/' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        // Open help modal
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [handleSend, handleNewChat, exportConversation, chatHistory, currentChatIndex]);
 
   const handleExport = () => {
     try {
@@ -137,34 +106,14 @@ export default function Home() {
     }
   };
 
-  const handlePersonalityChange = (newPersonality) => {
-    updateAIPersonality(newPersonality);
-    toast({
-      title: 'AI Personality Updated',
-      description: `The AI personality has been updated to ${newPersonality.name}.`,
-    });
-  };
-
-  const handleColorSchemeChange = (newColorScheme) => {
-    setColorScheme(newColorScheme);
-    // Apply the new color scheme to the app
-    Object.entries(newColorScheme).forEach(([key, value]) => {
-      document.documentElement.style.setProperty(`--color-${key}`, value);
-    });
-    toast({
-      title: 'Color Scheme Updated',
-      description: 'The application color scheme has been updated.',
-    });
-  };
-
   return (
     <ErrorBoundary>
       <Layout>
         <div className="flex flex-col h-screen w-full">
           <Header onExport={handleExport}>
-            <SettingsMenu settings={settings} onSettingsChange={handleSettingsChange} />
-            <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={handlePersonalityChange} />
-            <ColorSchemeCustomizer colorScheme={colorScheme} onColorSchemeChange={handleColorSchemeChange} />
+            <SettingsMenu settings={settings} onSettingsChange={updateSettings} />
+            <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={updateAIPersonality} />
+            <ColorSchemeCustomizer colorScheme={colorScheme} onColorSchemeChange={updateColorScheme} />
             <HelpModal />
             <AlertDialog>
               <AlertDialogTrigger asChild>
