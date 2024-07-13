@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 
-const ChatWindow = ({ messages, onShare }) => {
+const ChatWindow = React.memo(({ messages, onShare }) => {
   const scrollAreaRef = useRef(null);
 
   useEffect(() => {
@@ -94,6 +94,29 @@ const ChatWindow = ({ messages, onShare }) => {
     );
   });
 
+  const memoizedMessages = useMemo(() => {
+    return messages.map((message, index) => (
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+      >
+        <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} group`}>
+          <Avatar className="w-8 h-8 mt-1">
+            <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
+            <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
+          </Avatar>
+          <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground dark:text-white user-message' : 'bg-muted'}`}>
+            {renderMessage(message)}
+          </div>
+        </div>
+      </motion.div>
+    ));
+  }, [messages, onShare]);
+
   return (
     <ScrollArea className="flex-1 p-4 chat-background" ref={scrollAreaRef}>
       {messages.length === 0 ? (
@@ -101,31 +124,14 @@ const ChatWindow = ({ messages, onShare }) => {
       ) : (
         <div className="space-y-4">
           <AnimatePresence>
-            {messages.map((message, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} group`}>
-                  <Avatar className="w-8 h-8 mt-1">
-                    <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
-                    <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
-                  </Avatar>
-                  <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
-                    {renderMessage(message)}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+            {memoizedMessages}
           </AnimatePresence>
         </div>
       )}
     </ScrollArea>
   );
-};
+});
+
+ChatWindow.displayName = 'ChatWindow';
 
 export default ChatWindow;
