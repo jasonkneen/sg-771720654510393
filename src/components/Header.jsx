@@ -1,10 +1,23 @@
 import React from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { Moon, Sun, Download } from 'lucide-react';
+import { Moon, Sun, Download, RefreshCw } from 'lucide-react';
 
 const Header = ({ onExport, children }) => {
   const { theme, setTheme } = useTheme();
+
+  const clearCache = () => {
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          caches.delete(name);
+        });
+      });
+    }
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
 
   return (
     <header className="flex items-center justify-between p-4 border-b bg-background">
@@ -20,6 +33,9 @@ const Header = ({ onExport, children }) => {
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+        <Button variant="ghost" size="icon" onClick={clearCache} title="Clear Cache">
+          <RefreshCw className="h-5 w-5" />
         </Button>
         {children}
       </div>
