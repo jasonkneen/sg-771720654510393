@@ -11,6 +11,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchingChat, setIsSwitchingChat] = useState(false);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [settings, setSettings] = useState(initialSettings);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
@@ -75,9 +76,11 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
   }, [input, isLoading, currentChatIndex, chatHistory, toast]);
 
   const handleNewChat = useCallback(() => {
+    setIsCreatingChat(true);
     const newChat = { id: Date.now(), name: `New Chat ${chatHistory.length + 1}`, messages: [] };
     setChatHistory((prev) => [...prev, newChat]);
     setCurrentChatIndex(chatHistory.length);
+    setTimeout(() => setIsCreatingChat(false), 300);
   }, [chatHistory.length]);
 
   const handleSelectChat = useCallback((index) => {
@@ -128,6 +131,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
     setInput,
     isLoading,
     isSwitchingChat,
+    isCreatingChat,
     settings,
     progress,
     handleSend,
