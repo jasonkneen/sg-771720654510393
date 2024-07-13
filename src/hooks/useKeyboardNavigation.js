@@ -1,27 +1,37 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-const useKeyboardNavigation = () => {
+const useKeyboardNavigation = (handlers) => {
   const router = useRouter();
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
+          case 'Enter':
+            e.preventDefault();
+            handlers.sendMessage();
+            break;
+          case 'n':
+            e.preventDefault();
+            handlers.newChat();
+            break;
+          case 'e':
+            e.preventDefault();
+            handlers.exportChat();
+            break;
+          case 'f':
+            e.preventDefault();
+            handlers.focusSearch();
+            break;
           case '/':
             e.preventDefault();
-            // Open help modal
-            break;
-          case 'h':
-            e.preventDefault();
-            router.push('/');
-            break;
-          case 's':
-            e.preventDefault();
-            router.push('/settings');
+            handlers.toggleShortcuts();
             break;
           // Add more shortcuts as needed
         }
+      } else if (e.key === 'Escape') {
+        handlers.escapeAction();
       }
     };
 
@@ -30,7 +40,7 @@ const useKeyboardNavigation = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [router]);
+  }, [handlers, router]);
 };
 
 export default useKeyboardNavigation;

@@ -9,6 +9,8 @@ import OnboardingTutorial from '@/components/OnboardingTutorial';
 import AIPersonalityCustomizer from '@/components/AIPersonalityCustomizer';
 import AIPersonalityDisplay from '@/components/AIPersonalityDisplay';
 import ColorSchemeCustomizer from '@/components/ColorSchemeCustomizer';
+import ChatSearch from '@/components/ChatSearch';
+import CodeDiffViewer from '@/components/CodeDiffViewer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -22,7 +24,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import logger from '@/utils/logger';
 
-const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
+const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
   loading: () => <ChatSkeleton />,
   ssr: false,
 });
@@ -70,6 +72,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showChatList, setShowChatList] = useState(false);
   const [isServerError, setIsServerError] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
   useKeyboardNavigation();
 
@@ -135,6 +138,10 @@ export default function Home() {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleSearch = (results) => {
+    setSearchResults(results);
   };
 
   const filteredChats = chatHistory.filter((chat) =>
@@ -205,6 +212,7 @@ export default function Home() {
               </div>
             )}
             <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
+              <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={handleSearch} />
               <AnimatePresence mode="wait">
                 {isInitializing ? (
                   <motion.div
@@ -234,7 +242,7 @@ export default function Home() {
                     exit={{ opacity: 0 }}
                     className="flex-1"
                   >
-                    <ChatWindow messages={chatHistory[currentChatIndex].messages} onShare={handleShare} />
+                    <VirtualizedChatWindow messages={chatHistory[currentChatIndex].messages} onShare={handleShare} />
                   </motion.div>
                 )}
               </AnimatePresence>
