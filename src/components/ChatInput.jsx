@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
+import { debounce } from '@/utils/debounce';
 
 const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) => {
   const characterCount = input.length;
   const isOverLimit = characterCount > maxLength;
   const isInputValid = input.trim().length > 0 && !isOverLimit;
+
+  const debouncedSetInput = useCallback(
+    debounce((value) => setInput(value), 300),
+    [setInput]
+  );
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    debouncedSetInput(value);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,7 +34,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
             type="text"
             placeholder="Type your message..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             className="flex-1"
             disabled={isLoading}
             maxLength={maxLength}

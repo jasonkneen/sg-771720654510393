@@ -2,13 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.css';
-import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 import LoadingState from './LoadingState';
+import ChatTimestamp from './ChatTimestamp';
+import CodeSnippet from './CodeSnippet';
 import { handleError } from '@/utils/errorHandler';
 
 const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
@@ -18,14 +16,7 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
     if (listRef.current) {
       listRef.current.scrollToItem(messages.length - 1, 'end');
     }
-    hljs.highlightAll();
   }, [messages]);
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).catch(error => {
-      handleError(error, 'Failed to copy to clipboard');
-    });
-  };
 
   const renderMessage = (message) => {
     const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -48,56 +39,17 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
     return parts.map((part, index) => {
       if (part.type === 'code') {
         return (
-          <div key={index} className="relative my-4 code-block">
-            <pre className="p-6 bg-black rounded-md overflow-x-auto">
-              <code className={`language-${part.language} text-sm`}>{part.content}</code>
-            </pre>
-            <div className="absolute top-2 right-2 space-x-2 code-block-icons">
-              <CopyButton content={part.content} />
-              <ShareButton content={part.content} onShare={onShare} />
-            </div>
-          </div>
+          <CodeSnippet
+            key={index}
+            language={part.language}
+            content={part.content}
+            onShare={onShare}
+          />
         );
       }
       return <p key={index} className="my-2">{part.content}</p>;
     });
   };
-
-  const CopyButton = React.memo(({ content }) => {
-    const [copied, setCopied] = React.useState(false);
-
-    const handleCopy = () => {
-      copyToClipboard(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleCopy}
-        className="hover:bg-gray-700/50 p-1 text-gray-300"
-        aria-label={copied ? "Copied" : "Copy code"}
-      >
-        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-      </Button>
-    );
-  });
-
-  const ShareButton = React.memo(({ content, onShare }) => {
-    return (
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onShare(content)}
-        className="hover:bg-gray-700/50 p-1 text-gray-300"
-        aria-label="Share code snippet"
-      >
-        <Share className="h-4 w-4" />
-      </Button>
-    );
-  });
 
   const MessageItem = ({ index, style }) => {
     const message = messages[index];
@@ -116,6 +68,7 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
             </Avatar>
             <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground dark:text-white user-message' : 'bg-muted'}`}>
               {renderMessage(message)}
+              <ChatTimestamp timestamp={message.timestamp} />
             </div>
           </div>
         </motion.div>
