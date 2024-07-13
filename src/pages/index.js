@@ -12,6 +12,7 @@ import AIPersonalityDisplay from '@/components/AIPersonalityDisplay';
 import ColorSchemeCustomizer from '@/components/ColorSchemeCustomizer';
 import ChatSearch from '@/components/ChatSearch';
 import LoadingState from '@/components/LoadingState';
+import ErrorMessage from '@/components/ErrorMessage';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -24,7 +25,7 @@ import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
 import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
-import { handleError } from '@/utils/errorHandler';
+import { handleComponentError } from '@/utils/componentErrorHandler';
 
 const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
   loading: () => <LoadingState message="Loading Chat..." />,
@@ -66,7 +67,11 @@ export default function Home() {
   const { toast } = useToast();
   const api = useApi();
 
-  useKeyboardNavigation();
+  const handleKeyboardNavigation = useKeyboardNavigation(
+    filteredChats.length,
+    currentChatIndex,
+    handleSelectChat
+  );
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', appSettings.darkMode);
@@ -78,12 +83,7 @@ export default function Home() {
       try {
         const response = await api.get('/api/health');
       } catch (error) {
-        handleError(error, 'Server health check failed');
-        toast({
-          title: 'Server Error',
-          description: 'Unable to connect to the server. Please try again later.',
-          variant: 'destructive',
-        });
+        handleComponentError(error, 'Server health check');
       }
     };
 
@@ -91,7 +91,7 @@ export default function Home() {
     const intervalId = setInterval(checkServerStatus, 60000); // Check every minute
 
     return () => clearInterval(intervalId);
-  }, [api, toast]);
+  }, [api]);
 
   const handleExport = async () => {
     try {
@@ -101,12 +101,7 @@ export default function Home() {
         description: 'Your conversation has been exported successfully.',
       });
     } catch (error) {
-      handleError(error, 'Error exporting conversation');
-      toast({
-        title: 'Export Failed',
-        description: 'An error occurred while exporting the conversation. Please try again.',
-        variant: 'destructive',
-      });
+      handleComponentError(error, 'Export conversation');
     }
   };
 
@@ -118,12 +113,7 @@ export default function Home() {
         description: 'Your code snippet has been shared successfully.',
       });
     } catch (error) {
-      handleError(error, 'Error sharing code snippet');
-      toast({
-        title: 'Share Failed',
-        description: 'An error occurred while sharing the code snippet. Please try again.',
-        variant: 'destructive',
-      });
+      handleComponentError(error, 'Share code snippet');
     }
   };
 
@@ -170,6 +160,7 @@ export default function Home() {
                   onSelectChat={handleSelectChat}
                   onDeleteChat={handleDeleteChat}
                   onRenameChat={handleRenameChat}
+                  onKeyDown={handleKeyboardNavigation}
                 />
               </div>
             )}
