@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -17,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import useChatState from '@/hooks/useChatState';
+import useChatListState from '@/hooks/useChatListState';
 import useExportShare from '@/hooks/useExportShare';
 import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
 import useApi from '@/hooks/useApi';
@@ -42,6 +43,7 @@ export default function Home() {
     setInput,
     isLoading,
     isSwitchingChat,
+    isCreatingChat,
     settings,
     progress,
     handleSend,
@@ -53,17 +55,20 @@ export default function Home() {
     handleSettingsChange,
   } = useChatState();
 
+  const {
+    showChatList,
+    setShowChatList,
+    searchTerm,
+    setSearchTerm,
+    filteredChats,
+    toggleChatList,
+    handleSearch,
+  } = useChatListState(chatHistory);
+
   const { exportConversation, shareCodeSnippet } = useExportShare();
   const { settings: appSettings, updateSettings, aiPersonality, updateAIPersonality, colorScheme, updateColorScheme } = useAppContext();
   const { toast } = useToast();
   const api = useApi();
-
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showChatList, setShowChatList] = useState(false);
-  const [isServerError, setIsServerError] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
 
   useKeyboardNavigation();
 
@@ -73,21 +78,16 @@ export default function Home() {
   }, [appSettings.darkMode, appSettings.fontSize]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitializing(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
     const checkServerStatus = async () => {
       try {
         const response = await api.get('/api/health');
-        setIsServerError(false);
       } catch (error) {
-        setIsServerError(true);
         handleError(error, 'Server health check failed');
+        toast({
+          title: 'Server Error',
+          description: 'Unable to connect to the server. Please try again later.',
+          variant: 'destructive',
+        });
       }
     };
 
@@ -95,7 +95,7 @@ export default function Home() {
     const intervalId = setInterval(checkServerStatus, 60000); // Check every minute
 
     return () => clearInterval(intervalId);
-  }, [api]);
+  }, [api, toast]);
 
   const handleExport = async () => {
     try {
@@ -130,26 +130,6 @@ export default function Home() {
       });
     }
   };
-
-  const handleSearch = (results) => {
-    setSearchResults(results);
-  };
-
-  const filteredChats = chatHistory.filter((chat) =>
-    chat.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (isServerError) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Server Unavailable</h1>
-          <p className="mb-4">We're experiencing technical difficulties. Please try again later.</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <ErrorBoundary>
@@ -206,17 +186,7 @@ export default function Home() {
               <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={handleSearch} />
               <div className="flex-1 overflow-hidden">
                 <AnimatePresence mode="wait">
-                  {isInitializing ? (
-                    <motion.div
-                      key="initializing"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="h-full flex items-center justify-center"
-                    >
-                      <LoadingState message="Initializing chat..." />
-                    </motion.div>
-                  ) : isSwitchingChat ? (
+                  {isCreatingChat || isSwitchingChat ? (
                     <motion.div
                       key="loading"
                       initial={{ opacity: 0 }}
@@ -224,7 +194,7 @@ export default function Home() {
                       exit={{ opacity: 0 }}
                       className="h-full flex items-center justify-center"
                     >
-                      <LoadingState message="Loading chat..." />
+                      <LoadingState message={isCreatingChat ? "Creating new chat..." : "Loading chat..."} />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -261,7 +231,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        {showOnboarding && <OnboardingTutorial onClose={() => setShowOnboarding(false)} />}
+        <OnboardingTutorial />
       </Layout>
     </ErrorBoundary>
   );
