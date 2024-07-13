@@ -48,6 +48,7 @@ export default function Home() {
     setInput,
     isLoading,
     isSwitchingChat,
+    settings,
     progress,
     handleSend,
     handleNewChat,
@@ -55,23 +56,25 @@ export default function Home() {
     handleRenameChat,
     handleDeleteChat,
     handleClearHistory,
+    handleSettingsChange,
   } = useChatState();
 
   const { exportConversation, shareCodeSnippet } = useExportShare();
-  const { settings, updateSettings, aiPersonality, updateAIPersonality, colorScheme, updateColorScheme } = useAppContext();
+  const { settings: appSettings, updateSettings, aiPersonality, updateAIPersonality, colorScheme, updateColorScheme } = useAppContext();
   const { toast } = useToast();
 
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showChatList, setShowChatList] = useState(false);
+  const [isServerError, setIsServerError] = useState(false);
 
   useKeyboardNavigation();
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', settings.darkMode);
-    document.documentElement.style.fontSize = settings.fontSize === 'small' ? '14px' : settings.fontSize === 'large' ? '18px' : '16px';
-  }, [settings.darkMode, settings.fontSize]);
+    document.documentElement.classList.toggle('dark', appSettings.darkMode);
+    document.documentElement.style.fontSize = appSettings.fontSize === 'small' ? '14px' : appSettings.fontSize === 'large' ? '18px' : '16px';
+  }, [appSettings.darkMode, appSettings.fontSize]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -79,6 +82,27 @@ export default function Home() {
     }, 1000);
 
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const checkServerStatus = async () => {
+      try {
+        const response = await fetch('/api/health');
+        if (!response.ok) {
+          setIsServerError(true);
+        } else {
+          setIsServerError(false);
+        }
+      } catch (error) {
+        setIsServerError(true);
+        logger.error('Server health check failed:', error);
+      }
+    };
+
+    checkServerStatus();
+    const intervalId = setInterval(checkServerStatus, 60000); // Check every minute
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleExport = () => {
@@ -111,6 +135,18 @@ export default function Home() {
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (isServerError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Server Unavailable</h1>
+          <p className="mb-4">We're experiencing technical difficulties. Please try again later.</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <Layout>
@@ -123,7 +159,7 @@ export default function Home() {
             showChatList={showChatList}
             setShowChatList={setShowChatList}
           >
-            <SettingsMenu settings={settings} onSettingsChange={updateSettings} />
+            <SettingsMenu settings={appSettings} onSettingsChange={updateSettings} />
             <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={updateAIPersonality} />
             <ColorSchemeCustomizer colorScheme={colorScheme} onColorSchemeChange={updateColorScheme} />
             <HelpModal />
