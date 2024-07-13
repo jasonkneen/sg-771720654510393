@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { handleComponentError } from '@/utils/componentErrorHandler';
 import performanceMonitor from '@/utils/performanceMonitor';
 import { logError } from '@/utils/errorLogger';
+import debugLogger from '@/utils/debugLogger';
 
 const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenameChat }) => {
   const listRef = useRef(null);
@@ -38,10 +39,12 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
   const handleSelect = (index) => {
     performanceMonitor.start('ChatList-handleSelect');
     try {
+      debugLogger.log('Selecting chat:', index);
       onSelectChat(index);
     } catch (error) {
       handleComponentError(error, 'ChatList - Select Chat');
       logError(error, { context: 'ChatList - handleSelect' });
+      debugLogger.error('Error in handleSelect:', error);
     }
     performanceMonitor.end('ChatList-handleSelect');
   };
@@ -50,10 +53,12 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
     performanceMonitor.start('ChatList-handleDelete');
     e.stopPropagation();
     try {
+      debugLogger.log('Deleting chat:', index);
       onDeleteChat(index);
     } catch (error) {
       handleComponentError(error, 'ChatList - Delete Chat');
       logError(error, { context: 'ChatList - handleDelete' });
+      debugLogger.error('Error in handleDelete:', error);
     }
     performanceMonitor.end('ChatList-handleDelete');
   };
@@ -64,10 +69,12 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
     const newName = prompt('Enter new chat name:');
     if (newName) {
       try {
+        debugLogger.log('Renaming chat:', index, 'to:', newName);
         onRenameChat(index, newName);
       } catch (error) {
         handleComponentError(error, 'ChatList - Rename Chat');
         logError(error, { context: 'ChatList - handleRename' });
+        debugLogger.error('Error in handleRename:', error);
       }
     }
     performanceMonitor.end('ChatList-handleRename');
