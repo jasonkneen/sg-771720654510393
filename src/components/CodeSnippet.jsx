@@ -3,6 +3,7 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Share } from 'lucide-react';
+import { handleComponentError } from '@/utils/componentErrorHandler';
 
 const CodeSnippet = ({ language, content, onShare }) => {
   const codeRef = useRef(null);
@@ -15,9 +16,21 @@ const CodeSnippet = ({ language, content, onShare }) => {
   }, [content, language]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      handleComponentError(error, 'Copying code snippet');
+    }
+  };
+
+  const handleShare = () => {
+    try {
+      onShare(content);
+    } catch (error) {
+      handleComponentError(error, 'Sharing code snippet');
+    }
   };
 
   return (
@@ -40,7 +53,7 @@ const CodeSnippet = ({ language, content, onShare }) => {
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => onShare(content)}
+          onClick={handleShare}
           className="hover:bg-gray-700/50 p-1 text-gray-300"
           aria-label="Share code snippet"
         >
