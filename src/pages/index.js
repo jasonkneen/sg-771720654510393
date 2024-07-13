@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -22,6 +22,7 @@ import useChatState from '@/hooks/useChatState';
 import useChatListState from '@/hooks/useChatListState';
 import useExportShare from '@/hooks/useExportShare';
 import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
+import useChatVisibility from '@/hooks/useChatVisibility';
 import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -74,7 +75,7 @@ export default function Home() {
   const { toast } = useToast();
   const api = useApi();
 
-  const [isChatVisible, setIsChatVisible] = useState(true);
+  const { isChatVisible, toggleChatVisibility, chatContainerRef } = useChatVisibility();
 
   const handleKeyboardNavigation = useKeyboardNavigation(
     filteredChats.length,
@@ -128,10 +129,6 @@ export default function Home() {
 
   const debouncedSearch = debounce(handleSearch, 300);
 
-  const handleChatVisibility = () => {
-    setIsChatVisible((prev) => !prev);
-  };
-
   return (
     <ErrorBoundary>
       <Layout>
@@ -143,6 +140,7 @@ export default function Home() {
             setSearchTerm={setSearchTerm}
             showChatList={showChatList}
             setShowChatList={setShowChatList}
+            onToggleChat={toggleChatVisibility}
           >
             <SettingsMenu settings={appSettings} onSettingsChange={updateSettings} />
             <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={updateAIPersonality} />
@@ -184,7 +182,7 @@ export default function Home() {
             <ErrorBoundary>
               <ChatBox>
                 <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={debouncedSearch} />
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden" ref={chatContainerRef}>
                   <AnimatePresence mode="wait">
                     {isCreatingChat || isSwitchingChat ? (
                       <motion.div
@@ -216,7 +214,7 @@ export default function Home() {
                 {isLoading && (
                   <Progress value={progress} className="w-full" />
                 )}
-                <div className="mt-auto">
+                <div className="sticky bottom-0 bg-background">
                   <ChatInput
                     input={input}
                     setInput={setInput}

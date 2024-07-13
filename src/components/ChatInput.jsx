@@ -27,7 +27,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
   };
 
   return (
-    <div className="p-4 border-t bg-background sticky bottom-0">
+    <div className="p-4 border-t bg-background">
       <form onSubmit={handleSubmit} className="space-y-2">
         <div className="flex space-x-2">
           <Input
