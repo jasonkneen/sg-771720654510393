@@ -29,9 +29,9 @@ export default function Home() {
   const [chatHistory, setChatHistory] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('chatHistory');
-      return saved ? JSON.parse(saved) : [{ id: 1, messages: [] }];
+      return saved ? JSON.parse(saved) : [{ id: 1, name: 'New Chat', messages: [] }];
     }
-    return [{ id: 1, messages: [] }];
+    return [{ id: 1, name: 'New Chat', messages: [] }];
   });
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [input, setInput] = useState('');
@@ -79,7 +79,8 @@ export default function Home() {
   }, [input, isLoading, currentChatIndex, toast]);
 
   const handleNewChat = useCallback(() => {
-    setChatHistory((prev) => [...prev, { id: prev.length + 1, messages: [] }]);
+    const newChat = { id: chatHistory.length + 1, name: `New Chat ${chatHistory.length + 1}`, messages: [] };
+    setChatHistory((prev) => [...prev, newChat]);
     setCurrentChatIndex(chatHistory.length);
   }, [chatHistory.length]);
 
@@ -89,6 +90,28 @@ export default function Home() {
     setTimeout(() => setIsSwitchingChat(false), 300);
   }, []);
 
+  const handleRenameChat = useCallback((index, newName) => {
+    setChatHistory((prev) => {
+      const newHistory = [...prev];
+      newHistory[index].name = newName;
+      return newHistory;
+    });
+  }, []);
+
+  const handleExportChat = useCallback(() => {
+    const currentChat = chatHistory[currentChatIndex];
+    const chatContent = currentChat.messages.map(msg => `${msg.sender}: ${msg.content}`).join('\n\n');
+    const blob = new Blob([chatContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentChat.name}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [chatHistory, currentChatIndex]);
+
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -96,6 +119,9 @@ export default function Home() {
       } else if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         handleNewChat();
+      } else if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handleExportChat();
       }
     };
 
@@ -103,18 +129,19 @@ export default function Home() {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [handleSend, handleNewChat]);
+  }, [handleSend, handleNewChat, handleExportChat]);
 
   return (
     <ErrorBoundary>
       <Layout>
         <div className="flex flex-col h-screen">
-          <Header />
+          <Header onExport={handleExportChat} />
           <div className="flex flex-1 overflow-hidden">
             <Sidebar
               chatHistory={chatHistory}
               onNewChat={handleNewChat}
               onSelectChat={handleSelectChat}
+              onRenameChat={handleRenameChat}
               currentChatIndex={currentChatIndex}
             />
             <div className="flex flex-col flex-1">
