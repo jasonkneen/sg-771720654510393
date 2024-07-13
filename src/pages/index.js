@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import CollapsibleSidebar from '@/components/CollapsibleSidebar';
 import ChatInput from '@/components/ChatInput';
 import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
@@ -64,6 +63,8 @@ export default function Home() {
 
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showChatList, setShowChatList] = useState(false);
 
   useKeyboardNavigation();
 
@@ -106,11 +107,22 @@ export default function Home() {
     }
   };
 
+  const filteredChats = chatHistory.filter((chat) =>
+    chat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <ErrorBoundary>
       <Layout>
         <div className="flex flex-col h-screen w-full">
-          <Header onExport={handleExport}>
+          <Header
+            onExport={handleExport}
+            onNewChat={handleNewChat}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            showChatList={showChatList}
+            setShowChatList={setShowChatList}
+          >
             <SettingsMenu settings={settings} onSettingsChange={updateSettings} />
             <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={updateAIPersonality} />
             <ColorSchemeCustomizer colorScheme={colorScheme} onColorSchemeChange={updateColorScheme} />
@@ -134,14 +146,22 @@ export default function Home() {
             </AlertDialog>
           </Header>
           <div className="flex flex-1 overflow-hidden">
-            <CollapsibleSidebar
-              chatHistory={chatHistory}
-              onNewChat={handleNewChat}
-              onSelectChat={handleSelectChat}
-              onRenameChat={handleRenameChat}
-              onDeleteChat={handleDeleteChat}
-              currentChatIndex={currentChatIndex}
-            />
+            {showChatList && (
+              <div className="w-64 bg-background border-r border-border">
+                <div className="p-4 space-y-2">
+                  {filteredChats.map((chat, index) => (
+                    <Button
+                      key={chat.id}
+                      variant={currentChatIndex === index ? "secondary" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => handleSelectChat(index)}
+                    >
+                      {chat.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
               <AnimatePresence mode="wait">
                 {isInitializing ? (
