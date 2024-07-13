@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logError from '@/utils/errorLogger';
 import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
   loading: () => <p>Loading chat...</p>,
@@ -39,7 +40,7 @@ export default function Home() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchingChat, setIsSwitchingChat] = useState(false);
-  const [settings, setSettings] = useState({ darkMode: false, autoSave: true });
+  const [settings, setSettings] = useState({ darkMode: false, autoSave: true, fontSize: 'medium', language: 'en' });
   const [progress, setProgress] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const { toast } = useToast();
@@ -49,6 +50,11 @@ export default function Home() {
       saveChatSessions(chatHistory);
     }
   }, [chatHistory, settings.autoSave]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', settings.darkMode);
+    document.documentElement.style.fontSize = settings.fontSize === 'small' ? '14px' : settings.fontSize === 'large' ? '18px' : '16px';
+  }, [settings.darkMode, settings.fontSize]);
 
   const handleSend = useCallback(async (e) => {
     e.preventDefault();
@@ -166,11 +172,6 @@ export default function Home() {
 
   const handleSettingsChange = useCallback((newSettings) => {
     setSettings(newSettings);
-    if (newSettings.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
   }, []);
 
   useEffect(() => {
@@ -230,13 +231,29 @@ export default function Home() {
               currentChatIndex={currentChatIndex}
             />
             <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
-              {isSwitchingChat ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <p className="text-muted-foreground">Loading chat...</p>
-                </div>
-              ) : (
-                <ChatWindow messages={chatHistory[currentChatIndex].messages} />
-              )}
+              <AnimatePresence mode="wait">
+                {isSwitchingChat ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex-1 flex items-center justify-center"
+                  >
+                    <p className="text-muted-foreground">Loading chat...</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="chat"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex-1"
+                  >
+                    <ChatWindow messages={chatHistory[currentChatIndex].messages} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               {isLoading && (
                 <Progress value={progress} className="w-full" />
               )}
