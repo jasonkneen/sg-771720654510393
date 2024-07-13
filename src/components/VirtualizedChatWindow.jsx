@@ -9,6 +9,7 @@ import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 import LoadingState from './LoadingState';
+import { handleError } from '@/utils/errorHandler';
 
 const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   const listRef = useRef(null);
@@ -21,7 +22,9 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   }, [messages]);
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch(error => {
+      handleError(error, 'Failed to copy to clipboard');
+    });
   };
 
   const renderMessage = (message) => {

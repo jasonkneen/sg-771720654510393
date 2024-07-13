@@ -75,174 +75,74 @@
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+.chat-container {
+  @apply flex flex-col h-full;
 }
 
-.animate-fade-out {
-  animation: fadeOut 0.3s ease-in-out;
+.chat-messages {
+  @apply flex-1 overflow-y-auto p-4;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.chat-input {
+  @apply sticky bottom-0 bg-background border-t border-border p-4;
 }
 
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+.message {
+  @apply mb-4 last:mb-0;
 }
 
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+.message-content {
+  @apply rounded-lg p-3 inline-block max-w-[80%];
 }
 
-.hover-scale {
-  transition: transform 0.2s ease-in-out;
+.user-message .message-content {
+  @apply bg-primary text-primary-foreground ml-auto;
 }
 
-.hover-scale:hover {
-  transform: scale(1.05);
+.ai-message .message-content {
+  @apply bg-secondary text-secondary-foreground;
 }
 
-/* Custom styles for code blocks */
-pre {
-  @apply p-4 rounded-md overflow-x-auto;
-}
-
-code {
-  @apply text-sm;
-}
-
-/* Custom scrollbar styles */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-muted;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/50 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground;
-}
-
-/* Custom focus styles */
-:focus-visible {
-  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
-}
-
-/* Custom selection styles */
-::selection {
-  @apply bg-primary/20 text-primary-foreground;
-}
-
-/* Dark mode chat background */
-.dark .chat-background {
-  @apply bg-gray-800;
-}
-
-/* Responsive layout adjustments */
-@media (max-width: 640px) {
-  .chat-layout {
-    @apply flex-col;
-  }
-  
-  .sidebar {
-    @apply w-full h-auto;
-  }
-}
-
-/* Code block icon visibility */
-.code-block-icons {
-  @apply opacity-0 transition-opacity duration-200;
-}
-
-.code-block:hover .code-block-icons {
-  @apply opacity-100;
-}
-
-.dark .code-block-icons {
-  @apply text-gray-400;
-}
-
-/* User message text color in dark mode */
-.dark .user-message {
-  @apply text-white;
-}
-
-/* Improved animations */
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out;
-}
-
-.animate-slide-out-left {
-  animation: slideOutLeft 0.3s ease-in;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes slideOutLeft {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-
-/* Responsive font sizes */
-@media (max-width: 640px) {
-  html {
-    font-size: 14px;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-@media (min-width: 1025px) {
-  html {
-    font-size: 18px;
-  }
-}
-
-/* Code block styling */
 .code-block {
-  @apply relative;
+  @apply bg-muted text-muted-foreground rounded-md p-3 my-2 overflow-x-auto;
 }
 
-.code-block pre {
-  @apply bg-black text-white rounded-md p-4 my-2;
+.loading-spinner {
+  @apply animate-spin h-5 w-5 text-primary;
 }
 
-.code-block .code-block-icons {
-  @apply absolute top-2 right-2 space-x-2 opacity-0 transition-opacity duration-200;
+.error-message {
+  @apply text-destructive bg-destructive/10 p-3 rounded-md my-2;
 }
 
-.code-block:hover .code-block-icons {
-  @apply opacity-100;
+.chat-list {
+  @apply w-64 bg-background border-r border-border overflow-y-auto;
 }
 
-.code-block .code-block-icons button {
-  @apply text-gray-300 hover:bg-gray-700/50;
+.chat-list-item {
+  @apply p-2 hover:bg-muted cursor-pointer;
 }
 
-/* Chat message styling */
-.user-message {
-  @apply py-1.5 px-3;
+.chat-list-item.active {
+  @apply bg-primary text-primary-foreground;
 }
 
-/* Loading skeleton */
-.loading-skeleton {
-  @apply animate-pulse bg-gray-300 dark:bg-gray-700 rounded-md;
+.search-input {
+  @apply w-full p-2 border border-input rounded-md;
+}
+
+.personality-display {
+  @apply bg-card text-card-foreground p-4 rounded-lg shadow-sm;
+}
+
+.settings-menu {
+  @apply bg-background border border-border rounded-lg shadow-lg p-4;
+}
+
+.onboarding-overlay {
+  @apply fixed inset-0 bg-background/80 backdrop-blur-sm z-50;
+}
+
+.onboarding-content {
+  @apply fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card text-card-foreground p-6 rounded-lg shadow-lg z-50;
 }
