@@ -23,6 +23,7 @@ import useChatListState from '@/hooks/useChatListState';
 import useExportShare from '@/hooks/useExportShare';
 import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
 import useChatVisibility from '@/hooks/useChatVisibility';
+import useChatScroll from '@/hooks/useChatScroll';
 import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -76,6 +77,7 @@ export default function Home() {
   const api = useApi();
 
   const { isChatVisible, toggleChatVisibility, chatContainerRef } = useChatVisibility();
+  const chatScrollRef = useChatScroll(chatHistory[currentChatIndex].messages);
 
   const handleKeyboardNavigation = useKeyboardNavigation(
     filteredChats.length,
@@ -206,6 +208,7 @@ export default function Home() {
                           messages={chatHistory[currentChatIndex].messages} 
                           onShare={handleShare}
                           isLoading={isLoading}
+                          chatScrollRef={chatScrollRef}
                         />
                       </motion.div>
                     )}
