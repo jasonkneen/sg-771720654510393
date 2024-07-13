@@ -1,7 +1,10 @@
 import React from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import dynamic from 'next/dynamic';
 import { diffLines } from 'diff';
+
+const SyntaxHighlighter = dynamic(() => import('react-syntax-highlighter').then(mod => mod.Prism), {
+  ssr: false,
+});
 
 const CodeDiffViewer = ({ oldCode, newCode, language }) => {
   const diff = diffLines(oldCode, newCode);
@@ -10,7 +13,7 @@ const CodeDiffViewer = ({ oldCode, newCode, language }) => {
     <div className="code-diff-viewer">
       <SyntaxHighlighter
         language={language}
-        style={vscDarkPlus}
+        style={{}}
         showLineNumbers
         wrapLines
         customStyle={{

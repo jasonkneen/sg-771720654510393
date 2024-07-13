@@ -10,7 +10,6 @@ import AIPersonalityCustomizer from '@/components/AIPersonalityCustomizer';
 import AIPersonalityDisplay from '@/components/AIPersonalityDisplay';
 import ColorSchemeCustomizer from '@/components/ColorSchemeCustomizer';
 import ChatSearch from '@/components/ChatSearch';
-import CodeDiffViewer from '@/components/CodeDiffViewer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -23,6 +22,11 @@ import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import logger from '@/utils/logger';
+
+const CodeDiffViewer = dynamic(() => import('@/components/CodeDiffViewer'), {
+  ssr: false,
+  loading: () => <p>Loading Code Diff Viewer...</p>,
+});
 
 const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
   loading: () => <ChatSkeleton />,
