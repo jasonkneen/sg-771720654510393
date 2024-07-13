@@ -80,7 +80,7 @@ export default function Home() {
   const api = useApi();
 
   const { isChatVisible, toggleChatVisibility, chatContainerRef } = useChatVisibility();
-  const chatScrollRef = useChatScroll(chatHistory[currentChatIndex].messages);
+  const chatScrollRef = useChatScroll(chatHistory[currentChatIndex]?.messages || []);
 
   const {
     editingMessageId,
@@ -111,6 +111,7 @@ export default function Home() {
     const checkServerStatus = async () => {
       try {
         const response = await api.get('/api/health');
+        console.log('Server health check:', response);
       } catch (error) {
         handleComponentError(error, 'Server health check');
       }
@@ -147,6 +148,9 @@ export default function Home() {
   };
 
   const debouncedSearch = debounce(handleSearch, 300);
+
+  console.log('Current chat history:', chatHistory);
+  console.log('Current chat index:', currentChatIndex);
 
   return (
     <ErrorBoundary>
@@ -200,7 +204,7 @@ export default function Home() {
             </ErrorBoundary>
             <ErrorBoundary>
               <ChatBox>
-                <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={debouncedSearch} />
+                <ChatSearch messages={chatHistory[currentChatIndex]?.messages || []} onSearchResult={debouncedSearch} />
                 <div className="flex-1 overflow-hidden" ref={chatContainerRef}>
                   <AnimatePresence mode="wait">
                     {isCreatingChat || isSwitchingChat ? (
@@ -222,7 +226,7 @@ export default function Home() {
                         className={`h-full ${isChatVisible ? '' : 'hidden'}`}
                       >
                         <VirtualizedChatWindow 
-                          messages={chatHistory[currentChatIndex].messages} 
+                          messages={chatHistory[currentChatIndex]?.messages || []} 
                           onShare={handleShare}
                           isLoading={isLoading}
                           chatScrollRef={chatScrollRef}
