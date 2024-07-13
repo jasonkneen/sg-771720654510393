@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
-import useApi from './useApi';
 import { callOpenAI } from '@/utils/openai';
+import { OPENAI_CONFIG } from '@/config/openai';
 
 export const useChatState = (initialSettings = { autoSave: true }) => {
   const [chatHistory, setChatHistory] = useState(() => loadChatSessions());
@@ -13,7 +13,6 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
   const [settings, setSettings] = useState(initialSettings);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
-  const api = useApi();
 
   useEffect(() => {
     if (settings.autoSave) {
@@ -46,8 +45,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
 
       try {
         const messages = chatHistory[currentChatIndex].messages.concat(userMessage);
-        const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-        const aiResponse = await callOpenAI(messages, apiKey);
+        const aiResponse = await callOpenAI(messages, OPENAI_CONFIG.apiKey);
         const aiMessage = { sender: 'ai', content: aiResponse };
         setChatHistory((prev) => {
           const newHistory = [...prev];
@@ -73,7 +71,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
         }, 500);
       }
     }
-  }, [input, isLoading, currentChatIndex, chatHistory, toast, api]);
+  }, [input, isLoading, currentChatIndex, chatHistory, toast]);
 
   const handleNewChat = useCallback(() => {
     const newChat = { id: Date.now(), name: `New Chat ${chatHistory.length + 1}`, messages: [] };
