@@ -38,8 +38,14 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
             className="flex-1"
             disabled={isLoading}
             maxLength={maxLength}
+            aria-label="Chat input"
+            aria-invalid={isOverLimit}
           />
-          <Button type="submit" disabled={!isInputValid || isLoading}>
+          <Button 
+            type="submit" 
+            disabled={!isInputValid || isLoading}
+            aria-label={isLoading ? "Sending message" : "Send message"}
+          >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
@@ -48,7 +54,10 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
             <span className="ml-2">{isLoading ? 'Sending...' : 'Send'}</span>
           </Button>
         </div>
-        <div className={`text-sm ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
+        <div 
+          className={`text-sm ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}
+          aria-live="polite"
+        >
           {characterCount}/{maxLength} characters
         </div>
       </form>

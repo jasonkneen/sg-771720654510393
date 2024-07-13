@@ -1,14 +1,41 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { handleError } from '@/utils/errorHandler';
+import { handleComponentError } from '@/utils/componentErrorHandler';
 
 const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenameChat }) => {
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.focus();
+    }
+  }, []);
+
+  const handleKeyDown = (e, index) => {
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        if (index > 0) onSelectChat(index - 1);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (index < chats.length - 1) onSelectChat(index + 1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        onSelectChat(index);
+        break;
+      default:
+        break;
+    }
+  };
+
   const handleSelect = (index) => {
     try {
       onSelectChat(index);
     } catch (error) {
-      handleError(error, 'Error selecting chat');
+      handleComponentError(error, 'ChatList - Select Chat');
     }
   };
 
@@ -17,7 +44,7 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
     try {
       onDeleteChat(index);
     } catch (error) {
-      handleError(error, 'Error deleting chat');
+      handleComponentError(error, 'ChatList - Delete Chat');
     }
   };
 
@@ -28,20 +55,30 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
       try {
         onRenameChat(index, newName);
       } catch (error) {
-        handleError(error, 'Error renaming chat');
+        handleComponentError(error, 'ChatList - Rename Chat');
       }
     }
   };
 
   return (
     <ScrollArea className="h-full">
-      <div className="p-4 space-y-2">
+      <div 
+        className="p-4 space-y-2" 
+        role="listbox" 
+        aria-label="Chat list" 
+        ref={listRef}
+        tabIndex="0"
+      >
         {chats.map((chat, index) => (
           <div
             key={chat.id}
             className={`flex items-center justify-between p-2 rounded-lg ${
               currentChatIndex === index ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
             }`}
+            role="option"
+            aria-selected={currentChatIndex === index}
+            tabIndex="0"
+            onKeyDown={(e) => handleKeyDown(e, index)}
           >
             <Button
               variant="ghost"
@@ -55,7 +92,7 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
                 variant="ghost"
                 size="sm"
                 onClick={(e) => handleRename(index, e)}
-                aria-label="Rename chat"
+                aria-label={`Rename chat ${chat.name}`}
               >
                 ✏️
               </Button>
@@ -63,7 +100,7 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
                 variant="ghost"
                 size="sm"
                 onClick={(e) => handleDelete(index, e)}
-                aria-label="Delete chat"
+                aria-label={`Delete chat ${chat.name}`}
               >
                 🗑️
               </Button>
