@@ -204,49 +204,57 @@ export default function Home() {
             )}
             <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
               <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={handleSearch} />
-              <AnimatePresence mode="wait">
-                {isInitializing ? (
-                  <motion.div
-                    key="initializing"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex-1 flex items-center justify-center"
-                  >
-                    <LoadingState message="Initializing chat..." />
-                  </motion.div>
-                ) : isSwitchingChat ? (
-                  <motion.div
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex-1 flex items-center justify-center"
-                  >
-                    <LoadingState message="Loading chat..." />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="chat"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex-1"
-                  >
-                    <VirtualizedChatWindow messages={chatHistory[currentChatIndex].messages} onShare={handleShare} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="flex-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {isInitializing ? (
+                    <motion.div
+                      key="initializing"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="h-full flex items-center justify-center"
+                    >
+                      <LoadingState message="Initializing chat..." />
+                    </motion.div>
+                  ) : isSwitchingChat ? (
+                    <motion.div
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="h-full flex items-center justify-center"
+                    >
+                      <LoadingState message="Loading chat..." />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="chat"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="h-full"
+                    >
+                      <VirtualizedChatWindow 
+                        messages={chatHistory[currentChatIndex].messages} 
+                        onShare={handleShare}
+                        isLoading={isLoading}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               {isLoading && (
                 <Progress value={progress} className="w-full" />
               )}
-              <ChatInput
-                input={input}
-                setInput={setInput}
-                handleSend={handleSend}
-                isLoading={isLoading}
-                maxLength={500}
-              />
+              <div className="mt-auto">
+                <ChatInput
+                  input={input}
+                  setInput={setInput}
+                  handleSend={handleSend}
+                  isLoading={isLoading}
+                  maxLength={500}
+                />
+              </div>
             </div>
             <div className="w-64 p-4 border-l border-border">
               <AIPersonalityDisplay personality={aiPersonality} />
