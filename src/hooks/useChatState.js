@@ -3,6 +3,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
 import { callOpenAI } from '@/utils/openai';
 import { OPENAI_CONFIG } from '@/config/openai';
+import { handleError } from '@/utils/errorHandler';
 
 export const useChatState = (initialSettings = { autoSave: true }) => {
   const [chatHistory, setChatHistory] = useState(() => loadChatSessions());
@@ -56,7 +57,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
           return newHistory;
         });
       } catch (error) {
-        console.error('Error in AI response:', error);
+        handleError(error, 'Error in AI response');
         toast({
           title: 'Error',
           description: 'Failed to get AI response. Please try again.',
