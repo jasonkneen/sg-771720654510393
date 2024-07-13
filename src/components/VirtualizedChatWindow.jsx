@@ -35,6 +35,7 @@ const VirtualizedChatWindow = React.memo(({
     if (listRef.current) {
       listRef.current.scrollToItem(messages.length - 1, 'end');
     }
+    console.log('Messages updated:', messages); // Debug log
   }, [messages]);
 
   const memoizedMessages = useMemo(() => messages, [messages]);
