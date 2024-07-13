@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { handleComponentError } from '@/utils/componentErrorHandler';
+import performanceMonitor from '@/utils/performanceMonitor';
+import { logError } from '@/utils/errorLogger';
 
 const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenameChat }) => {
   const listRef = useRef(null);
@@ -13,6 +15,7 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
   }, []);
 
   const handleKeyDown = (e, index) => {
+    performanceMonitor.start('ChatList-handleKeyDown');
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
@@ -29,26 +32,34 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
       default:
         break;
     }
+    performanceMonitor.end('ChatList-handleKeyDown');
   };
 
   const handleSelect = (index) => {
+    performanceMonitor.start('ChatList-handleSelect');
     try {
       onSelectChat(index);
     } catch (error) {
       handleComponentError(error, 'ChatList - Select Chat');
+      logError(error, { context: 'ChatList - handleSelect' });
     }
+    performanceMonitor.end('ChatList-handleSelect');
   };
 
   const handleDelete = (index, e) => {
+    performanceMonitor.start('ChatList-handleDelete');
     e.stopPropagation();
     try {
       onDeleteChat(index);
     } catch (error) {
       handleComponentError(error, 'ChatList - Delete Chat');
+      logError(error, { context: 'ChatList - handleDelete' });
     }
+    performanceMonitor.end('ChatList-handleDelete');
   };
 
   const handleRename = (index, e) => {
+    performanceMonitor.start('ChatList-handleRename');
     e.stopPropagation();
     const newName = prompt('Enter new chat name:');
     if (newName) {
@@ -56,8 +67,10 @@ const ChatList = ({ chats, currentChatIndex, onSelectChat, onDeleteChat, onRenam
         onRenameChat(index, newName);
       } catch (error) {
         handleComponentError(error, 'ChatList - Rename Chat');
+        logError(error, { context: 'ChatList - handleRename' });
       }
     }
+    performanceMonitor.end('ChatList-handleRename');
   };
 
   return (
