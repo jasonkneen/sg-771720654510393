@@ -9,6 +9,7 @@ import HelpModal from '@/components/HelpModal';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
 import AIPersonalityCustomizer from '@/components/AIPersonalityCustomizer';
 import AIPersonalityDisplay from '@/components/AIPersonalityDisplay';
+import ColorSchemeCustomizer from '@/components/ColorSchemeCustomizer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +19,7 @@ import useChatState from '@/hooks/useChatState';
 import useExportShare from '@/hooks/useExportShare';
 import useAIPersonality from '@/hooks/useAIPersonality';
 import { useToast } from '@/components/ui/use-toast';
+import logger from '@/utils/logger';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
   loading: () => <ChatSkeleton />,
@@ -63,6 +65,12 @@ export default function Home() {
     tone: 50,
     verbosity: 50,
   });
+  const [colorScheme, setColorScheme] = useState({
+    primary: '#3b82f6',
+    secondary: '#10b981',
+    background: '#ffffff',
+    text: '#1f2937',
+  });
   const { toast } = useToast();
 
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -107,7 +115,7 @@ export default function Home() {
     try {
       exportConversation(chatHistory[currentChatIndex]);
     } catch (error) {
-      console.error('Error exporting conversation:', error);
+      logger.error('Error exporting conversation:', { error });
       toast({
         title: 'Export Failed',
         description: 'An error occurred while exporting the conversation. Please try again.',
@@ -120,7 +128,7 @@ export default function Home() {
     try {
       shareCodeSnippet(snippet);
     } catch (error) {
-      console.error('Error sharing code snippet:', error);
+      logger.error('Error sharing code snippet:', { error });
       toast({
         title: 'Share Failed',
         description: 'An error occurred while sharing the code snippet. Please try again.',
@@ -137,6 +145,18 @@ export default function Home() {
     });
   };
 
+  const handleColorSchemeChange = (newColorScheme) => {
+    setColorScheme(newColorScheme);
+    // Apply the new color scheme to the app
+    Object.entries(newColorScheme).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(`--color-${key}`, value);
+    });
+    toast({
+      title: 'Color Scheme Updated',
+      description: 'The application color scheme has been updated.',
+    });
+  };
+
   return (
     <ErrorBoundary>
       <Layout>
@@ -144,6 +164,7 @@ export default function Home() {
           <Header onExport={handleExport}>
             <SettingsMenu settings={settings} onSettingsChange={handleSettingsChange} />
             <AIPersonalityCustomizer personality={aiPersonality} onPersonalityChange={handlePersonalityChange} />
+            <ColorSchemeCustomizer colorScheme={colorScheme} onColorSchemeChange={handleColorSchemeChange} />
             <HelpModal />
             <AlertDialog>
               <AlertDialogTrigger asChild>
