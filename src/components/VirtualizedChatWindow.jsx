@@ -11,6 +11,7 @@ import useChatScroll from '@/hooks/useChatScroll';
 import useMessageOperations from '@/hooks/useMessageOperations';
 import useMessageThreading from '@/hooks/useMessageThreading';
 import performanceMonitor from '@/utils/performanceMonitor';
+import { logError } from '@/utils/errorLogger';
 
 const VirtualizedChatWindow = React.memo(({ 
   messages, 
@@ -32,13 +33,20 @@ const VirtualizedChatWindow = React.memo(({
   const [collapsedThreads, setCollapsedThreads] = useState({});
 
   useEffect(() => {
+    performanceMonitor.start('VirtualizedChatWindow-useEffect');
     if (listRef.current) {
       listRef.current.scrollToItem(messages.length - 1, 'end');
     }
     console.log('Messages updated:', messages); // Debug log
+    performanceMonitor.end('VirtualizedChatWindow-useEffect');
   }, [messages]);
 
-  const memoizedMessages = useMemo(() => messages, [messages]);
+  const memoizedMessages = useMemo(() => {
+    performanceMonitor.start('memoizedMessages');
+    const result = messages;
+    performanceMonitor.end('memoizedMessages');
+    return result;
+  }, [messages]);
 
   const toggleThreadCollapse = (messageId) => {
     setCollapsedThreads(prev => ({
@@ -93,6 +101,9 @@ const VirtualizedChatWindow = React.memo(({
               itemSize={100}
               width={width}
               className="chat-messages"
+              onItemsRendered={({ visibleStartIndex, visibleStopIndex }) => {
+                console.log(`Rendering messages from ${visibleStartIndex} to ${visibleStopIndex}`);
+              }}
             >
               {MessageItem}
             </List>
