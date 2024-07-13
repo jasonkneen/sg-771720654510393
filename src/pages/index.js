@@ -6,6 +6,7 @@ import CollapsibleSidebar from '@/components/CollapsibleSidebar';
 import ChatInput from '@/components/ChatInput';
 import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
+import OnboardingTutorial from '@/components/OnboardingTutorial';
 import { useToast } from '@/components/ui/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ export default function Home() {
   const [isSwitchingChat, setIsSwitchingChat] = useState(false);
   const [settings, setSettings] = useState({ darkMode: false, autoSave: true });
   const [progress, setProgress] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,7 +63,10 @@ export default function Home() {
       const userMessage = { sender: 'user', content: input };
       setChatHistory((prev) => {
         const newHistory = [...prev];
-        newHistory[currentChatIndex].messages.push(userMessage);
+        newHistory[currentChatIndex] = {
+          ...newHistory[currentChatIndex],
+          messages: [...newHistory[currentChatIndex].messages, userMessage]
+        };
         return newHistory;
       });
       setInput('');
@@ -78,7 +83,10 @@ export default function Home() {
         const aiMessage = { sender: 'ai', content: aiResponse };
         setChatHistory((prev) => {
           const newHistory = [...prev];
-          newHistory[currentChatIndex].messages.push(aiMessage);
+          newHistory[currentChatIndex] = {
+            ...newHistory[currentChatIndex],
+            messages: [...newHistory[currentChatIndex].messages, aiMessage]
+          };
           return newHistory;
         });
       } catch (error) {
@@ -100,7 +108,7 @@ export default function Home() {
   }, [input, isLoading, currentChatIndex, toast]);
 
   const handleNewChat = useCallback(() => {
-    const newChat = { id: chatHistory.length + 1, name: `New Chat ${chatHistory.length + 1}`, messages: [] };
+    const newChat = { id: Date.now(), name: `New Chat ${chatHistory.length + 1}`, messages: [] };
     setChatHistory((prev) => [...prev, newChat]);
     setCurrentChatIndex(chatHistory.length);
   }, [chatHistory.length]);
@@ -118,6 +126,19 @@ export default function Home() {
       return newHistory;
     });
   }, []);
+
+  const handleDeleteChat = useCallback((index) => {
+    setChatHistory((prev) => {
+      const newHistory = prev.filter((_, i) => i !== index);
+      if (newHistory.length === 0) {
+        newHistory.push({ id: Date.now(), name: 'New Chat', messages: [] });
+      }
+      return newHistory;
+    });
+    if (currentChatIndex >= index && currentChatIndex > 0) {
+      setCurrentChatIndex(currentChatIndex - 1);
+    }
+  }, [currentChatIndex]);
 
   const handleExportChat = useCallback(() => {
     const currentChat = chatHistory[currentChatIndex];
@@ -138,7 +159,7 @@ export default function Home() {
   }, [chatHistory, currentChatIndex, toast]);
 
   const handleClearHistory = useCallback(() => {
-    setChatHistory([{ id: 1, name: 'New Chat', messages: [] }]);
+    setChatHistory([{ id: Date.now(), name: 'New Chat', messages: [] }]);
     setCurrentChatIndex(0);
     toast({
       title: 'Chat History Cleared',
@@ -208,6 +229,7 @@ export default function Home() {
               onNewChat={handleNewChat}
               onSelectChat={handleSelectChat}
               onRenameChat={handleRenameChat}
+              onDeleteChat={handleDeleteChat}
               currentChatIndex={currentChatIndex}
             />
             <div className="flex flex-col flex-1">
@@ -231,6 +253,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        {showOnboarding && <OnboardingTutorial onClose={() => setShowOnboarding(false)} />}
       </Layout>
     </ErrorBoundary>
   );
