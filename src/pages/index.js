@@ -24,6 +24,8 @@ import useExportShare from '@/hooks/useExportShare';
 import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
 import useChatVisibility from '@/hooks/useChatVisibility';
 import useChatScroll from '@/hooks/useChatScroll';
+import useMessageOperations from '@/hooks/useMessageOperations';
+import useEmojiReactions from '@/hooks/useEmojiReactions';
 import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -59,6 +61,7 @@ export default function Home() {
     handleDeleteChat,
     handleClearHistory,
     handleSettingsChange,
+    updateChatHistory,
   } = useChatState();
 
   const {
@@ -78,6 +81,20 @@ export default function Home() {
 
   const { isChatVisible, toggleChatVisibility, chatContainerRef } = useChatVisibility();
   const chatScrollRef = useChatScroll(chatHistory[currentChatIndex].messages);
+
+  const {
+    editingMessageId,
+    setEditingMessageId,
+    handleEditMessage,
+    handleDeleteMessage,
+  } = useMessageOperations(updateChatHistory);
+
+  const {
+    reactionMessageId,
+    setReactionMessageId,
+    handleAddReaction,
+    handleRemoveReaction,
+  } = useEmojiReactions(updateChatHistory);
 
   const handleKeyboardNavigation = useKeyboardNavigation(
     filteredChats.length,
@@ -209,6 +226,15 @@ export default function Home() {
                           onShare={handleShare}
                           isLoading={isLoading}
                           chatScrollRef={chatScrollRef}
+                          updateChatHistory={updateChatHistory}
+                          editingMessageId={editingMessageId}
+                          setEditingMessageId={setEditingMessageId}
+                          handleEditMessage={handleEditMessage}
+                          handleDeleteMessage={handleDeleteMessage}
+                          reactionMessageId={reactionMessageId}
+                          setReactionMessageId={setReactionMessageId}
+                          handleAddReaction={handleAddReaction}
+                          handleRemoveReaction={handleRemoveReaction}
                         />
                       </motion.div>
                     )}
