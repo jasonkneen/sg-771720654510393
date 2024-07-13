@@ -25,6 +25,8 @@ export default function App({ Component, pageProps }) {
         const res = await fetch('/api/health');
         if (!res.ok) {
           setIsServerHealthy(false);
+        } else {
+          setIsServerHealthy(true);
         }
       } catch (error) {
         console.error('Server health check failed:', error);
