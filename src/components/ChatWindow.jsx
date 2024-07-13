@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 
 const ChatWindow = ({ messages }) => {
@@ -20,6 +20,11 @@ const ChatWindow = ({ messages }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const shareSnippet = (text) => {
+    // Implement sharing functionality (e.g., generate a shareable link)
+    console.log('Sharing snippet:', text);
   };
 
   const renderMessage = (message) => {
@@ -47,7 +52,10 @@ const ChatWindow = ({ messages }) => {
             <pre className="p-4 bg-muted rounded-md">
               <code className={`language-${part.language}`}>{part.content}</code>
             </pre>
-            <CopyButton content={part.content} />
+            <div className="absolute top-2 right-2 space-x-2">
+              <CopyButton content={part.content} />
+              <ShareButton content={part.content} />
+            </div>
           </div>
         );
       }
@@ -68,10 +76,21 @@ const ChatWindow = ({ messages }) => {
       <Button
         size="sm"
         variant="ghost"
-        className="absolute top-2 right-2"
         onClick={handleCopy}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      </Button>
+    );
+  };
+
+  const ShareButton = ({ content }) => {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => shareSnippet(content)}
+      >
+        <Share className="h-4 w-4" />
       </Button>
     );
   };
