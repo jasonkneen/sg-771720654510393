@@ -5,6 +5,7 @@ import { Send, Loader2 } from 'lucide-react';
 import { debounce } from '@/utils/debounce';
 import { handleComponentError } from '@/utils/componentErrorHandler';
 import performanceMonitor from '@/utils/performanceMonitor';
+import { logError } from '@/utils/errorLogger';
 
 const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) => {
   const [localInput, setLocalInput] = useState(input);
@@ -44,6 +45,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
         inputRef.current?.focus();
       } catch (error) {
         handleComponentError(error, 'Error sending message');
+        logError(error, { context: 'ChatInput - handleSubmit' });
       }
     }
     performanceMonitor.end('handleSubmit');
