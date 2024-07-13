@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logError from '@/utils/errorLogger';
+import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
   loading: () => <p>Loading chat...</p>,
@@ -33,13 +34,7 @@ const simulateAIResponse = (message, context) => {
 };
 
 export default function Home() {
-  const [chatHistory, setChatHistory] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('chatHistory');
-      return saved ? JSON.parse(saved) : [{ id: 1, name: 'New Chat', messages: [] }];
-    }
-    return [{ id: 1, name: 'New Chat', messages: [] }];
-  });
+  const [chatHistory, setChatHistory] = useState(() => loadChatSessions());
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,8 +45,8 @@ export default function Home() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && settings.autoSave) {
-      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    if (settings.autoSave) {
+      saveChatSessions(chatHistory);
     }
   }, [chatHistory, settings.autoSave]);
 
@@ -162,6 +157,7 @@ export default function Home() {
   const handleClearHistory = useCallback(() => {
     setChatHistory([{ id: Date.now(), name: 'New Chat', messages: [] }]);
     setCurrentChatIndex(0);
+    clearChatSessions();
     toast({
       title: 'Chat History Cleared',
       description: 'Your chat history has been cleared.',
@@ -233,7 +229,7 @@ export default function Home() {
               onDeleteChat={handleDeleteChat}
               currentChatIndex={currentChatIndex}
             />
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
               {isSwitchingChat ? (
                 <div className="flex-1 flex items-center justify-center">
                   <p className="text-muted-foreground">Loading chat...</p>
