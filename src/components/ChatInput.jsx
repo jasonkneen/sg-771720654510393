@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
 import { debounce } from '@/utils/debounce';
 import { handleComponentError } from '@/utils/componentErrorHandler';
+import performanceMonitor from '@/utils/performanceMonitor';
 
 const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) => {
   const [localInput, setLocalInput] = useState(input);
@@ -15,20 +16,26 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
 
   const debouncedSetInput = useCallback(
     debounce((value) => {
+      performanceMonitor.start('debouncedSetInput');
       console.log('Debounced setInput called with:', value);
       setInput(value);
+      performanceMonitor.end('debouncedSetInput');
     }, 100),
     [setInput]
   );
 
   const handleInputChange = (e) => {
+    performanceMonitor.start('handleInputChange');
     const value = e.target.value;
+    console.log('Input changed:', value);
     setLocalInput(value);
     debouncedSetInput(value);
+    performanceMonitor.end('handleInputChange');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    performanceMonitor.start('handleSubmit');
     if (localInput.trim() && !isLoading) {
       try {
         console.log('Submitting message:', localInput);
@@ -39,6 +46,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
         handleComponentError(error, 'Error sending message');
       }
     }
+    performanceMonitor.end('handleSubmit');
   };
 
   const characterCount = localInput.length;
