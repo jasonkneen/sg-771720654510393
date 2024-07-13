@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import ChatInput from '@/components/ChatInput';
 import ChatList from '@/components/ChatList';
+import ChatWindow from '@/components/ChatWindow';
 import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
@@ -33,11 +33,6 @@ import { handleComponentError } from '@/utils/componentErrorHandler';
 import { debounce } from '@/utils/debounce';
 import performanceMonitor from '@/utils/performanceMonitor';
 import { logError } from '@/utils/errorLogger';
-
-const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
-  loading: () => <LoadingState message="Loading Chat..." />,
-  ssr: false,
-});
 
 const ChatBox = ({ children }) => (
   <div className="flex flex-col flex-1 bg-background dark:bg-gray-900 overflow-hidden">
@@ -242,20 +237,9 @@ export default function Home() {
                         exit={{ opacity: 0 }}
                         className={`h-full ${isChatVisible ? '' : 'hidden'}`}
                       >
-                        <VirtualizedChatWindow 
+                        <ChatWindow 
                           messages={chatHistory[currentChatIndex]?.messages || []} 
                           onShare={handleShare}
-                          isLoading={isLoading}
-                          chatScrollRef={chatScrollRef}
-                          updateChatHistory={updateChatHistory}
-                          editingMessageId={editingMessageId}
-                          setEditingMessageId={setEditingMessageId}
-                          handleEditMessage={handleEditMessage}
-                          handleDeleteMessage={handleDeleteMessage}
-                          reactionMessageId={reactionMessageId}
-                          setReactionMessageId={setReactionMessageId}
-                          handleAddReaction={handleAddReaction}
-                          handleRemoveReaction={handleRemoveReaction}
                         />
                       </motion.div>
                     )}
