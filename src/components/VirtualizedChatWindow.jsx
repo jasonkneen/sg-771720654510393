@@ -8,10 +8,17 @@ import ChatMessage from './ChatMessage';
 import ErrorMessage from './ErrorMessage';
 import { handleComponentError } from '@/utils/componentErrorHandler';
 import useChatScroll from '@/hooks/useChatScroll';
+import useMessageOperations from '@/hooks/useMessageOperations';
 
-const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
+const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading, updateChatHistory }) => {
   const listRef = useRef(null);
   const chatContainerRef = useChatScroll(messages);
+  const {
+    editingMessageId,
+    setEditingMessageId,
+    handleEditMessage,
+    handleDeleteMessage,
+  } = useMessageOperations(updateChatHistory);
 
   useEffect(() => {
     if (listRef.current) {
@@ -26,6 +33,10 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
         <ChatMessage
           message={message}
           onShare={onShare}
+          onEdit={handleEditMessage}
+          onDelete={handleDeleteMessage}
+          isEditing={editingMessageId === message.id}
+          setEditingMessageId={setEditingMessageId}
         />
       </div>
     );
