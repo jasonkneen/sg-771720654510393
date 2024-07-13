@@ -8,7 +8,7 @@ import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 
-const ChatWindow = ({ messages }) => {
+const ChatWindow = ({ messages, onShare }) => {
   const scrollAreaRef = useRef(null);
 
   useEffect(() => {
@@ -20,11 +20,6 @@ const ChatWindow = ({ messages }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-  };
-
-  const shareSnippet = (text) => {
-    // Implement sharing functionality (e.g., generate a shareable link)
-    console.log('Sharing snippet:', text);
   };
 
   const renderMessage = (message) => {
@@ -54,7 +49,7 @@ const ChatWindow = ({ messages }) => {
             </pre>
             <div className="absolute top-2 right-2 space-x-2 code-block-icons">
               <CopyButton content={part.content} />
-              <ShareButton content={part.content} />
+              <ShareButton content={part.content} onShare={onShare} />
             </div>
           </div>
         );
@@ -85,12 +80,12 @@ const ChatWindow = ({ messages }) => {
     );
   };
 
-  const ShareButton = ({ content }) => {
+  const ShareButton = ({ content, onShare }) => {
     return (
       <Button
         size="sm"
         variant="ghost"
-        onClick={() => shareSnippet(content)}
+        onClick={() => onShare(content)}
         className="hover:bg-gray-700/50 p-1 text-gray-300"
         aria-label="Share code snippet"
       >
@@ -120,7 +115,7 @@ const ChatWindow = ({ messages }) => {
                     <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
                     <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
                   </Avatar>
-                  <div className={`mx-2 ${message.sender === 'user' ? 'py-1.5' : 'p-3'} rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
+                  <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
                     {renderMessage(message)}
                   </div>
                 </div>
