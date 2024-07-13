@@ -3,9 +3,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { Edit2, Trash2, X, Check } from 'lucide-react';
+import { Edit2, Trash2, X, Check, MessageSquare } from 'lucide-react';
 import ChatTimestamp from './ChatTimestamp';
 import CodeSnippet from './CodeSnippet';
+import EmojiReactions from './EmojiReactions';
 import { handleComponentError } from '@/utils/componentErrorHandler';
 import {
   AlertDialog,
@@ -19,7 +20,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const ChatMessage = ({ message, onShare, onEdit, onDelete, isEditing, setEditingMessageId }) => {
+const ChatMessage = ({ 
+  message, 
+  onShare, 
+  onEdit, 
+  onDelete, 
+  isEditing, 
+  setEditingMessageId,
+  onAddReaction,
+  onRemoveReaction,
+  onReply,
+}) => {
   const [editedContent, setEditedContent] = useState(message.content);
 
   const renderMessageContent = () => {
@@ -103,6 +114,11 @@ const ChatMessage = ({ message, onShare, onEdit, onDelete, isEditing, setEditing
             <>
               {renderMessageContent()}
               <ChatTimestamp timestamp={message.timestamp} />
+              <EmojiReactions
+                reactions={message.reactions || []}
+                onAddReaction={(emoji) => onAddReaction(message.id, emoji)}
+                onRemoveReaction={(index) => onRemoveReaction(message.id, index)}
+              />
             </>
           )}
         </div>
@@ -139,6 +155,14 @@ const ChatMessage = ({ message, onShare, onEdit, onDelete, isEditing, setEditing
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onReply(message.id)}
+              className="p-1"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Button>
           </div>
         )}
       </div>
