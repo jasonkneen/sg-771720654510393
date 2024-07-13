@@ -120,7 +120,7 @@ const ChatWindow = ({ messages }) => {
                     <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
                     <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
                   </Avatar>
-                  <div className={`mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
+                  <div className={`mx-2 ${message.sender === 'user' ? 'py-1.5' : 'p-3'} rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
                     {renderMessage(message)}
                   </div>
                 </div>
