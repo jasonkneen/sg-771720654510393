@@ -81,7 +81,7 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   }
 
   return (
-    <div className="flex-1 p-4 chat-background">
+    <div className="flex-1 overflow-hidden">
       {messages.length === 0 ? (
         <WelcomeMessage />
       ) : (
@@ -93,6 +93,7 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
               itemCount={messages.length}
               itemSize={100}
               width={width}
+              className="chat-messages"
             >
               {MessageItem}
             </List>

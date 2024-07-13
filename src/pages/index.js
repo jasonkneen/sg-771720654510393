@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import ChatInput from '@/components/ChatInput';
+import ChatList from '@/components/ChatList';
 import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
@@ -24,11 +25,6 @@ import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import { handleError } from '@/utils/errorHandler';
-
-const CodeDiffViewer = dynamic(() => import('@/components/CodeDiffViewer'), {
-  ssr: false,
-  loading: () => <LoadingState message="Loading Code Diff Viewer..." />,
-});
 
 const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
   loading: () => <LoadingState message="Loading Chat..." />,
@@ -168,18 +164,13 @@ export default function Home() {
           <div className="flex flex-1 overflow-hidden">
             {showChatList && (
               <div className="w-64 bg-background border-r border-border">
-                <div className="p-4 space-y-2">
-                  {filteredChats.map((chat, index) => (
-                    <Button
-                      key={chat.id}
-                      variant={currentChatIndex === index ? "secondary" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => handleSelectChat(index)}
-                    >
-                      {chat.name}
-                    </Button>
-                  ))}
-                </div>
+                <ChatList
+                  chats={filteredChats}
+                  currentChatIndex={currentChatIndex}
+                  onSelectChat={handleSelectChat}
+                  onDeleteChat={handleDeleteChat}
+                  onRenameChat={handleRenameChat}
+                />
               </div>
             )}
             <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
