@@ -78,6 +78,7 @@ const ChatWindow = ({ messages }) => {
         variant="ghost"
         onClick={handleCopy}
         className="hover:bg-background/50"
+        aria-label={copied ? "Copied" : "Copy code"}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
@@ -91,6 +92,7 @@ const ChatWindow = ({ messages }) => {
         variant="ghost"
         onClick={() => shareSnippet(content)}
         className="hover:bg-background/50"
+        aria-label="Share code snippet"
       >
         <Share className="h-4 w-4" />
       </Button>
@@ -115,10 +117,10 @@ const ChatWindow = ({ messages }) => {
               >
                 <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   <Avatar className="w-8 h-8 mt-1">
-                    <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} />
+                    <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
                     <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
                   </Avatar>
-                  <div className={`mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  <div className={`mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground dark:text-white' : 'bg-muted'}`}>
                     {renderMessage(message)}
                   </div>
                 </div>
