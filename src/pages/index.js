@@ -33,6 +33,7 @@ import { handleComponentError } from '@/utils/componentErrorHandler';
 import { debounce } from '@/utils/debounce';
 import performanceMonitor from '@/utils/performanceMonitor';
 import { logError } from '@/utils/errorLogger';
+import debugLogger from '@/utils/debugLogger';
 
 const ChatBox = ({ children }) => (
   <div className="flex flex-col flex-1 bg-background dark:bg-gray-900 overflow-hidden">
@@ -111,7 +112,7 @@ export default function Home() {
       try {
         performanceMonitor.start('checkServerStatus');
         const response = await api.get('/api/health');
-        console.log('Server health check:', response);
+        debugLogger.log('Server health check:', response);
         performanceMonitor.end('checkServerStatus');
       } catch (error) {
         handleComponentError(error, 'Server health check');
@@ -158,8 +159,8 @@ export default function Home() {
   const debouncedSearch = debounce(handleSearch, 300);
 
   if (settings.debugMode) {
-    console.log('Current chat history:', chatHistory);
-    console.log('Current chat index:', currentChatIndex);
+    debugLogger.log('Current chat history:', chatHistory);
+    debugLogger.log('Current chat index:', currentChatIndex);
   }
 
   performanceMonitor.end('Home component render');
@@ -240,6 +241,12 @@ export default function Home() {
                         <ChatWindow 
                           messages={chatHistory[currentChatIndex]?.messages || []} 
                           onShare={handleShare}
+                          onEdit={handleEditMessage}
+                          onDelete={handleDeleteMessage}
+                          editingMessageId={editingMessageId}
+                          setEditingMessageId={setEditingMessageId}
+                          onAddReaction={handleAddReaction}
+                          onRemoveReaction={handleRemoveReaction}
                         />
                       </motion.div>
                     )}
