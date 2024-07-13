@@ -19,13 +19,13 @@ const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
   ssr: false,
 });
 
-const simulateAIResponse = (message) => {
+const simulateAIResponse = (message, context) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const responses = [
-        `Here's a simple React component that demonstrates the concept:\n\`\`\`jsx\nimport React from 'react';\n\nconst ExampleComponent = () => {\n  return (\n    <div>\n      <h1>Hello, World!</h1>\n      <p>This is a simple React component.</p>\n    </div>\n  );\n};\n\nexport default ExampleComponent;\n\`\`\``,
-        `To solve this problem, you can use a dynamic programming approach. Here's a Python implementation:\n\`\`\`python\ndef solve_problem(input_data):\n    # Initialize dynamic programming table\n    dp = [0] * len(input_data)\n    \n    # Base cases\n    dp[0] = input_data[0]\n    dp[1] = max(input_data[0], input_data[1])\n    \n    # Fill the dp table\n    for i in range(2, len(input_data)):\n        dp[i] = max(dp[i-1], dp[i-2] + input_data[i])\n    \n    return dp[-1]\n\`\`\``,
-        `For your CSS issue, try using flexbox. Here's an example:\n\`\`\`css\n.container {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.item {\n  flex: 1;\n  margin: 0 10px;\n}\n\`\`\``,
+        `Based on your question "${message}", here's a simple React component that demonstrates the concept:\n\`\`\`jsx\nimport React from 'react';\n\nconst ExampleComponent = () => {\n  return (\n    <div>\n      <h1>Hello, World!</h1>\n      <p>This is a simple React component.</p>\n    </div>\n  );\n};\n\nexport default ExampleComponent;\n\`\`\``,
+        `To solve the problem you described ("${message}"), you can use a dynamic programming approach. Here's a Python implementation:\n\`\`\`python\ndef solve_problem(input_data):\n    # Initialize dynamic programming table\n    dp = [0] * len(input_data)\n    \n    # Base cases\n    dp[0] = input_data[0]\n    dp[1] = max(input_data[0], input_data[1])\n    \n    # Fill the dp table\n    for i in range(2, len(input_data)):\n        dp[i] = max(dp[i-1], dp[i-2] + input_data[i])\n    \n    return dp[-1]\n\`\`\``,
+        `For your CSS issue ("${message}"), try using flexbox. Here's an example:\n\`\`\`css\n.container {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.item {\n  flex: 1;\n  margin: 0 10px;\n}\n\`\`\``,
       ];
       resolve(responses[Math.floor(Math.random() * responses.length)]);
     }, 1000 + Math.random() * 2000);
@@ -79,7 +79,8 @@ export default function Home() {
       }, 200);
 
       try {
-        const aiResponse = await simulateAIResponse(input);
+        const context = chatHistory[currentChatIndex].messages.slice(-5);
+        const aiResponse = await simulateAIResponse(input, context);
         const aiMessage = { sender: 'ai', content: aiResponse };
         setChatHistory((prev) => {
           const newHistory = [...prev];
@@ -105,7 +106,7 @@ export default function Home() {
         }, 500);
       }
     }
-  }, [input, isLoading, currentChatIndex, toast]);
+  }, [input, isLoading, currentChatIndex, chatHistory, toast]);
 
   const handleNewChat = useCallback(() => {
     const newChat = { id: Date.now(), name: `New Chat ${chatHistory.length + 1}`, messages: [] };
@@ -142,19 +143,19 @@ export default function Home() {
 
   const handleExportChat = useCallback(() => {
     const currentChat = chatHistory[currentChatIndex];
-    const chatContent = currentChat.messages.map(msg => `${msg.sender}: ${msg.content}`).join('\n\n');
-    const blob = new Blob([chatContent], { type: 'text/plain' });
+    const chatContent = currentChat.messages.map(msg => `## ${msg.sender === 'user' ? 'User' : 'AI'}\n\n${msg.content}\n\n`).join('');
+    const blob = new Blob([`# ${currentChat.name}\n\n${chatContent}`], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${currentChat.name}.txt`;
+    a.download = `${currentChat.name}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({
       title: 'Chat Exported',
-      description: 'Your chat has been successfully exported.',
+      description: 'Your chat has been successfully exported as a Markdown file.',
     });
   }, [chatHistory, currentChatIndex, toast]);
 
