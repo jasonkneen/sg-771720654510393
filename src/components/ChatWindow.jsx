@@ -48,11 +48,11 @@ const ChatWindow = ({ messages }) => {
     return parts.map((part, index) => {
       if (part.type === 'code') {
         return (
-          <div key={index} className="relative my-4">
+          <div key={index} className="relative my-4 code-block">
             <pre className="p-6 bg-muted rounded-md overflow-x-auto">
               <code className={`language-${part.language} text-sm`}>{part.content}</code>
             </pre>
-            <div className="absolute top-2 right-2 space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="absolute top-2 right-2 space-x-2 code-block-icons">
               <CopyButton content={part.content} />
               <ShareButton content={part.content} />
             </div>
@@ -120,7 +120,7 @@ const ChatWindow = ({ messages }) => {
                     <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
                     <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
                   </Avatar>
-                  <div className={`mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground dark:text-white' : 'bg-muted'}`}>
+                  <div className={`mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
                     {renderMessage(message)}
                   </div>
                 </div>
