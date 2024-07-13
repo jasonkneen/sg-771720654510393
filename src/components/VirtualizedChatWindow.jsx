@@ -8,8 +8,9 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
+import LoadingState from './LoadingState';
 
-const VirtualizedChatWindow = React.memo(({ messages, onShare }) => {
+const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -118,6 +119,10 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare }) => {
       </div>
     );
   };
+
+  if (isLoading) {
+    return <LoadingState message="Loading messages..." />;
+  }
 
   return (
     <div className="flex-1 p-4 chat-background">
