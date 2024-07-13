@@ -10,11 +10,13 @@ jest.mock('@/utils/chatStorage', () => ({
   loadChatSessions: jest.fn(() => [{ id: 1, name: 'Test Chat', messages: [] }]),
   clearChatSessions: jest.fn(),
 }));
-jest.mock('./useApi', () => ({
-  __esModule: true,
-  default: () => ({
-    post: jest.fn(() => Promise.resolve({ response: 'AI response' })),
-  }),
+jest.mock('@/utils/openai', () => ({
+  callOpenAI: jest.fn(() => Promise.resolve('AI response')),
+}));
+jest.mock('@/config/openai', () => ({
+  OPENAI_CONFIG: {
+    apiKey: 'test-api-key',
+  },
 }));
 
 describe('useChatState', () => {
@@ -65,5 +67,27 @@ describe('useChatState', () => {
     expect(result.current.chatHistory[0].messages).toHaveLength(2);
     expect(result.current.input).toBe('');
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('handles errors during message sending', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => useChatState());
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    jest.spyOn(require('@/utils/openai'), 'callOpenAI').mockRejectedValueOnce(new Error('API Error'));
+
+    act(() => {
+      result.current.setInput('Test message');
+    });
+
+    await act(async () => {
+      await result.current.handleSend({ preventDefault: jest.fn() });
+    });
+
+    await waitForNextUpdate();
+
+    expect(consoleSpy).toHaveBeenCalledWith('Error in AI response:', expect.any(Error));
+    expect(result.current.isLoading).toBe(false);
+
+    consoleSpy.mockRestore();
   });
 });

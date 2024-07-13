@@ -1,13 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { callOpenAI } from '@/utils/openai';
+import { OPENAI_CONFIG } from '@/config/openai';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const { messages } = req.body;
-      const apiKey = process.env.OPENAI_API_KEY;
       
-      const aiResponse = await callOpenAI(messages, apiKey);
+      if (!Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: 'Invalid messages format' });
+      }
+
+      const aiResponse = await callOpenAI(messages, OPENAI_CONFIG.apiKey);
       
       res.status(200).json({ response: aiResponse });
     } catch (error) {

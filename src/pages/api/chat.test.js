@@ -5,6 +5,16 @@ import { callOpenAI } from '@/utils/openai';
 jest.mock('@/utils/openai');
 
 describe('/api/chat', () => {
+  let consoleErrorSpy;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   it('should return 200 and AI response for valid POST request', async () => {
     const { req, res } = createMocks({
       method: 'POST',
@@ -49,5 +59,6 @@ describe('/api/chat', () => {
     expect(JSON.parse(res._getData())).toEqual({
       error: 'Internal Server Error',
     });
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error in chat API:', expect.any(Error));
   });
 });

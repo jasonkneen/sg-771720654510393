@@ -30,7 +30,7 @@ describe('callOpenAI', () => {
 
     axios.post.mockResolvedValue(mockResponse);
 
-    const result = await callOpenAI(mockMessages);
+    const result = await callOpenAI(mockMessages, OPENAI_CONFIG.apiKey);
 
     expect(axios.post).toHaveBeenCalledWith(
       'https://api.openai.com/v1/chat/completions',
@@ -58,12 +58,11 @@ describe('callOpenAI', () => {
 
     axios.post.mockRejectedValue(mockError);
 
-    await expect(callOpenAI(mockMessages)).rejects.toThrow('API call failed');
+    await expect(callOpenAI(mockMessages, OPENAI_CONFIG.apiKey)).rejects.toThrow('API call failed');
   });
 
   it('should throw an error if the API key is missing', async () => {
     const mockMessages = [{ sender: 'user', content: 'Hello' }];
-    jest.spyOn(OPENAI_CONFIG, 'apiKey', 'get').mockReturnValue(undefined);
 
     await expect(callOpenAI(mockMessages)).rejects.toThrow('OpenAI API key is missing');
   });
