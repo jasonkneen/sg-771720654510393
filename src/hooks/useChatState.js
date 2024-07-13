@@ -38,7 +38,92 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
     });
   }, []);
 
-  // ... (rest of the code remains the same)
+  const handleSend = useCallback(async (e) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setProgress(0);
+
+    const newMessage = { id: Date.now(), sender: 'user', content: input };
+    updateChatHistory((prevHistory) => {
+      const updatedHistory = [...prevHistory];
+      updatedHistory[currentChatIndex].messages.push(newMessage);
+      return updatedHistory;
+    });
+
+    setInput('');
+
+    try {
+      const aiResponse = await callOpenAI(
+        [...chatHistory[currentChatIndex].messages, newMessage],
+        OPENAI_CONFIG.apiKey
+      );
+
+      updateChatHistory((prevHistory) => {
+        const updatedHistory = [...prevHistory];
+        updatedHistory[currentChatIndex].messages.push({
+          id: Date.now(),
+          sender: 'ai',
+          content: aiResponse,
+        });
+        return updatedHistory;
+      });
+
+      setProgress(100);
+    } catch (error) {
+      handleError(error, 'Error sending message');
+      toast({
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [input, isLoading, updateChatHistory, currentChatIndex, chatHistory, toast]);
+
+  const handleNewChat = useCallback(() => {
+    setIsCreatingChat(true);
+    const newChat = { id: Date.now(), name: `Chat ${chatHistory.length + 1}`, messages: [] };
+    updateChatHistory((prevHistory) => [...prevHistory, newChat]);
+    setCurrentChatIndex(chatHistory.length);
+    setIsCreatingChat(false);
+  }, [chatHistory.length, updateChatHistory]);
+
+  const handleSelectChat = useCallback((index) => {
+    setIsSwitchingChat(true);
+    setCurrentChatIndex(index);
+    setIsSwitchingChat(false);
+  }, []);
+
+  const handleRenameChat = useCallback((index, newName) => {
+    updateChatHistory((prevHistory) => {
+      const updatedHistory = [...prevHistory];
+      updatedHistory[index].name = newName;
+      return updatedHistory;
+    });
+  }, [updateChatHistory]);
+
+  const handleDeleteChat = useCallback((index) => {
+    updateChatHistory((prevHistory) => {
+      const updatedHistory = prevHistory.filter((_, i) => i !== index);
+      return updatedHistory;
+    });
+    if (currentChatIndex >= index) {
+      setCurrentChatIndex((prevIndex) => Math.max(0, prevIndex - 1));
+    }
+  }, [updateChatHistory, currentChatIndex]);
+
+  const handleClearHistory = useCallback(() => {
+    clearChatSessions();
+    setChatHistory([{ id: Date.now(), name: 'New Chat', messages: [] }]);
+    setCurrentChatIndex(0);
+  }, []);
+
+  const handleSettingsChange = useCallback((newSettings) => {
+    setSettings((prevSettings) => ({ ...prevSettings, ...newSettings }));
+  }, []);
 
   return {
     chatHistory,
