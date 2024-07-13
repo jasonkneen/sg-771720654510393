@@ -31,6 +31,8 @@ import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import { handleComponentError } from '@/utils/componentErrorHandler';
 import { debounce } from '@/utils/debounce';
+import performanceMonitor from '@/utils/performanceMonitor';
+import { logError } from '@/utils/errorLogger';
 
 const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
   loading: () => <LoadingState message="Loading Chat..." />,
@@ -44,6 +46,8 @@ const ChatBox = ({ children }) => (
 );
 
 export default function Home() {
+  performanceMonitor.start('Home component render');
+
   const {
     chatHistory,
     currentChatIndex,
@@ -110,10 +114,13 @@ export default function Home() {
   useEffect(() => {
     const checkServerStatus = async () => {
       try {
+        performanceMonitor.start('checkServerStatus');
         const response = await api.get('/api/health');
         console.log('Server health check:', response);
+        performanceMonitor.end('checkServerStatus');
       } catch (error) {
         handleComponentError(error, 'Server health check');
+        logError(error, { context: 'checkServerStatus' });
       }
     };
 
@@ -125,32 +132,42 @@ export default function Home() {
 
   const handleExport = async () => {
     try {
+      performanceMonitor.start('handleExport');
       await exportConversation(chatHistory[currentChatIndex]);
       toast({
         title: 'Export Successful',
         description: 'Your conversation has been exported successfully.',
       });
+      performanceMonitor.end('handleExport');
     } catch (error) {
       handleComponentError(error, 'Export conversation');
+      logError(error, { context: 'handleExport' });
     }
   };
 
   const handleShare = async (snippet) => {
     try {
+      performanceMonitor.start('handleShare');
       await shareCodeSnippet(snippet);
       toast({
         title: 'Share Successful',
         description: 'Your code snippet has been shared successfully.',
       });
+      performanceMonitor.end('handleShare');
     } catch (error) {
       handleComponentError(error, 'Share code snippet');
+      logError(error, { context: 'handleShare' });
     }
   };
 
   const debouncedSearch = debounce(handleSearch, 300);
 
-  console.log('Current chat history:', chatHistory);
-  console.log('Current chat index:', currentChatIndex);
+  if (settings.debugMode) {
+    console.log('Current chat history:', chatHistory);
+    console.log('Current chat index:', currentChatIndex);
+  }
+
+  performanceMonitor.end('Home component render');
 
   return (
     <ErrorBoundary>
