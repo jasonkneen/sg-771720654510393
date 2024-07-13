@@ -4,10 +4,11 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import WelcomeMessage from './WelcomeMessage';
-import LoadingState from './LoadingState';
+import LoadingSpinner from './LoadingSpinner';
 import ChatTimestamp from './ChatTimestamp';
 import CodeSnippet from './CodeSnippet';
-import { handleError } from '@/utils/errorHandler';
+import ErrorMessage from './ErrorMessage';
+import { handleComponentError } from '@/utils/componentErrorHandler';
 
 const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   const listRef = useRef(null);
@@ -19,36 +20,41 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   }, [messages]);
 
   const renderMessage = (message) => {
-    const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
-    const parts = [];
-    let lastIndex = 0;
-    let match;
+    try {
+      const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
 
-    while ((match = codeRegex.exec(message.content)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({ type: 'text', content: message.content.slice(lastIndex, match.index) });
+      while ((match = codeRegex.exec(message.content)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push({ type: 'text', content: message.content.slice(lastIndex, match.index) });
+        }
+        parts.push({ type: 'code', language: match[1] || 'plaintext', content: match[2] });
+        lastIndex = match.index + match[0].length;
       }
-      parts.push({ type: 'code', language: match[1] || 'plaintext', content: match[2] });
-      lastIndex = match.index + match[0].length;
-    }
 
-    if (lastIndex < message.content.length) {
-      parts.push({ type: 'text', content: message.content.slice(lastIndex) });
-    }
-
-    return parts.map((part, index) => {
-      if (part.type === 'code') {
-        return (
-          <CodeSnippet
-            key={index}
-            language={part.language}
-            content={part.content}
-            onShare={onShare}
-          />
-        );
+      if (lastIndex < message.content.length) {
+        parts.push({ type: 'text', content: message.content.slice(lastIndex) });
       }
-      return <p key={index} className="my-2">{part.content}</p>;
-    });
+
+      return parts.map((part, index) => {
+        if (part.type === 'code') {
+          return (
+            <CodeSnippet
+              key={index}
+              language={part.language}
+              content={part.content}
+              onShare={onShare}
+            />
+          );
+        }
+        return <p key={index} className="my-2">{part.content}</p>;
+      });
+    } catch (error) {
+      handleComponentError(error, 'Rendering message');
+      return <ErrorMessage title="Error" description="Failed to render message" />;
+    }
   };
 
   const MessageItem = ({ index, style }) => {
@@ -77,7 +83,7 @@ const VirtualizedChatWindow = React.memo(({ messages, onShare, isLoading }) => {
   };
 
   if (isLoading) {
-    return <LoadingState message="Loading messages..." />;
+    return <LoadingSpinner size="large" className="h-full" />;
   }
 
   return (
