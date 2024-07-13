@@ -43,15 +43,15 @@ const ChatWindow = ({ messages }) => {
     return parts.map((part, index) => {
       if (part.type === 'code') {
         return (
-          <div key={index} className="relative">
-            <pre>
+          <div key={index} className="relative my-2">
+            <pre className="p-4 bg-muted rounded-md">
               <code className={`language-${part.language}`}>{part.content}</code>
             </pre>
             <CopyButton content={part.content} />
           </div>
         );
       }
-      return <p key={index}>{part.content}</p>;
+      return <p key={index} className="my-2">{part.content}</p>;
     });
   };
 
@@ -92,12 +92,12 @@ const ChatWindow = ({ messages }) => {
                 transition={{ duration: 0.3 }}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex items-start ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   <Avatar className="w-8 h-8 mt-1">
                     <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} />
                     <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
                   </Avatar>
-                  <div className={`max-w-md mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  <div className={`mx-2 p-3 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                     {renderMessage(message)}
                   </div>
                 </div>
