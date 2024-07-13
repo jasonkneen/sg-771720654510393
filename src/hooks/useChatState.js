@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
 import { callOpenAI } from '@/utils/openai';
@@ -15,6 +15,11 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
   const [settings, setSettings] = useState(initialSettings);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
+  const chatHistoryRef = useRef(chatHistory);
+
+  useEffect(() => {
+    chatHistoryRef.current = chatHistory;
+  }, [chatHistory]);
 
   useEffect(() => {
     if (settings.autoSave) {
@@ -22,14 +27,22 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
     }
   }, [chatHistory, settings.autoSave]);
 
+  const updateChatHistory = useCallback((updater) => {
+    setChatHistory((prevHistory) => {
+      const newHistory = updater(prevHistory);
+      chatHistoryRef.current = newHistory;
+      return newHistory;
+    });
+  }, []);
+
   const handleSend = useCallback(async (e) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
       setIsLoading(true);
       setProgress(0);
       const userMessage = { sender: 'user', content: input };
-      setChatHistory((prev) => {
-        const newHistory = [...prev];
+      updateChatHistory((prevHistory) => {
+        const newHistory = [...prevHistory];
         newHistory[currentChatIndex] = {
           ...newHistory[currentChatIndex],
           messages: [...newHistory[currentChatIndex].messages, userMessage]
@@ -46,11 +59,11 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
       }, 200);
 
       try {
-        const messages = chatHistory[currentChatIndex].messages.concat(userMessage);
+        const messages = chatHistoryRef.current[currentChatIndex].messages.concat(userMessage);
         const aiResponse = await callOpenAI(messages, OPENAI_CONFIG.apiKey);
         const aiMessage = { sender: 'ai', content: aiResponse };
-        setChatHistory((prev) => {
-          const newHistory = [...prev];
+        updateChatHistory((prevHistory) => {
+          const newHistory = [...prevHistory];
           newHistory[currentChatIndex] = {
             ...newHistory[currentChatIndex],
             messages: [...newHistory[currentChatIndex].messages, aiMessage]
@@ -73,15 +86,15 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
         }, 500);
       }
     }
-  }, [input, isLoading, currentChatIndex, chatHistory, toast]);
+  }, [input, isLoading, currentChatIndex, toast, updateChatHistory]);
 
   const handleNewChat = useCallback(() => {
     setIsCreatingChat(true);
-    const newChat = { id: Date.now(), name: `New Chat ${chatHistory.length + 1}`, messages: [] };
-    setChatHistory((prev) => [...prev, newChat]);
-    setCurrentChatIndex(chatHistory.length);
+    const newChat = { id: Date.now(), name: `New Chat ${chatHistoryRef.current.length + 1}`, messages: [] };
+    updateChatHistory((prevHistory) => [...prevHistory, newChat]);
+    setCurrentChatIndex(chatHistoryRef.current.length);
     setTimeout(() => setIsCreatingChat(false), 300);
-  }, [chatHistory.length]);
+  }, [updateChatHistory]);
 
   const handleSelectChat = useCallback((index) => {
     setIsSwitchingChat(true);
@@ -90,16 +103,16 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
   }, []);
 
   const handleRenameChat = useCallback((index, newName) => {
-    setChatHistory((prev) => {
-      const newHistory = [...prev];
+    updateChatHistory((prevHistory) => {
+      const newHistory = [...prevHistory];
       newHistory[index].name = newName;
       return newHistory;
     });
-  }, []);
+  }, [updateChatHistory]);
 
   const handleDeleteChat = useCallback((index) => {
-    setChatHistory((prev) => {
-      const newHistory = prev.filter((_, i) => i !== index);
+    updateChatHistory((prevHistory) => {
+      const newHistory = prevHistory.filter((_, i) => i !== index);
       if (newHistory.length === 0) {
         newHistory.push({ id: Date.now(), name: 'New Chat', messages: [] });
       }
@@ -108,17 +121,17 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
     if (currentChatIndex >= index && currentChatIndex > 0) {
       setCurrentChatIndex(currentChatIndex - 1);
     }
-  }, [currentChatIndex]);
+  }, [currentChatIndex, updateChatHistory]);
 
   const handleClearHistory = useCallback(() => {
-    setChatHistory([{ id: Date.now(), name: 'New Chat', messages: [] }]);
+    updateChatHistory(() => [{ id: Date.now(), name: 'New Chat', messages: [] }]);
     setCurrentChatIndex(0);
     clearChatSessions();
     toast({
       title: 'Chat History Cleared',
       description: 'Your chat history has been cleared.',
     });
-  }, [toast]);
+  }, [toast, updateChatHistory]);
 
   const handleSettingsChange = useCallback((newSettings) => {
     setSettings(newSettings);
@@ -141,6 +154,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
     handleDeleteChat,
     handleClearHistory,
     handleSettingsChange,
+    updateChatHistory,
   };
 };
 

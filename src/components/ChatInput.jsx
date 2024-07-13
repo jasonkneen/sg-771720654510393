@@ -1,30 +1,49 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
 import { debounce } from '@/utils/debounce';
+import { handleComponentError } from '@/utils/componentErrorHandler';
 
 const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) => {
-  const characterCount = input.length;
-  const isOverLimit = characterCount > maxLength;
-  const isInputValid = input.trim().length > 0 && !isOverLimit;
+  const [localInput, setLocalInput] = useState(input);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    setLocalInput(input);
+  }, [input]);
 
   const debouncedSetInput = useCallback(
-    debounce((value) => setInput(value), 300),
+    debounce((value) => {
+      console.log('Debounced setInput called with:', value);
+      setInput(value);
+    }, 100),
     [setInput]
   );
 
   const handleInputChange = (e) => {
     const value = e.target.value;
+    setLocalInput(value);
     debouncedSetInput(value);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isInputValid && !isLoading) {
-      handleSend(e);
+    if (localInput.trim() && !isLoading) {
+      try {
+        console.log('Submitting message:', localInput);
+        handleSend(e);
+        setLocalInput('');
+        inputRef.current?.focus();
+      } catch (error) {
+        handleComponentError(error, 'Error sending message');
+      }
     }
   };
+
+  const characterCount = localInput.length;
+  const isOverLimit = characterCount > maxLength;
+  const isInputValid = localInput.trim().length > 0 && !isOverLimit;
 
   return (
     <div className="p-4 border-t bg-background">
@@ -33,13 +52,14 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
           <Input
             type="text"
             placeholder="Type your message..."
-            value={input}
+            value={localInput}
             onChange={handleInputChange}
             className="flex-1"
             disabled={isLoading}
             maxLength={maxLength}
             aria-label="Chat input"
             aria-invalid={isOverLimit}
+            ref={inputRef}
           />
           <Button 
             type="submit" 
