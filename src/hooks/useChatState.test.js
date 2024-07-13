@@ -27,6 +27,8 @@ describe('useChatState', () => {
     expect(result.current.currentChatIndex).toBe(0);
     expect(result.current.input).toBe('');
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSwitchingChat).toBe(false);
+    expect(result.current.isCreatingChat).toBe(false);
   });
 
   it('handles new chat creation', () => {
@@ -38,6 +40,7 @@ describe('useChatState', () => {
 
     expect(result.current.chatHistory).toHaveLength(2);
     expect(result.current.currentChatIndex).toBe(1);
+    expect(result.current.isCreatingChat).toBe(true);
   });
 
   it('handles chat selection', () => {
@@ -49,6 +52,7 @@ describe('useChatState', () => {
     });
 
     expect(result.current.currentChatIndex).toBe(0);
+    expect(result.current.isSwitchingChat).toBe(true);
   });
 
   it('handles message sending', async () => {
@@ -89,5 +93,49 @@ describe('useChatState', () => {
     expect(result.current.isLoading).toBe(false);
 
     consoleSpy.mockRestore();
+  });
+
+  it('handles chat renaming', () => {
+    const { result } = renderHook(() => useChatState());
+
+    act(() => {
+      result.current.handleRenameChat(0, 'New Name');
+    });
+
+    expect(result.current.chatHistory[0].name).toBe('New Name');
+  });
+
+  it('handles chat deletion', () => {
+    const { result } = renderHook(() => useChatState());
+
+    act(() => {
+      result.current.handleNewChat();
+      result.current.handleDeleteChat(0);
+    });
+
+    expect(result.current.chatHistory).toHaveLength(1);
+    expect(result.current.currentChatIndex).toBe(0);
+  });
+
+  it('handles clearing chat history', () => {
+    const { result } = renderHook(() => useChatState());
+
+    act(() => {
+      result.current.handleNewChat();
+      result.current.handleClearHistory();
+    });
+
+    expect(result.current.chatHistory).toHaveLength(1);
+    expect(result.current.currentChatIndex).toBe(0);
+  });
+
+  it('handles settings change', () => {
+    const { result } = renderHook(() => useChatState());
+
+    act(() => {
+      result.current.handleSettingsChange({ autoSave: false });
+    });
+
+    expect(result.current.settings.autoSave).toBe(false);
   });
 });
