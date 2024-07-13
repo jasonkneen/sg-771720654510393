@@ -109,7 +109,7 @@
 
 /* Custom styles for code blocks */
 pre {
-  @apply p-4 rounded-lg overflow-x-auto;
+  @apply p-4 rounded-md overflow-x-auto;
 }
 
 code {
@@ -147,4 +147,33 @@ code {
 /* Dark mode chat background */
 .dark .chat-background {
   @apply bg-gray-800;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 640px) {
+  .chat-layout {
+    @apply flex-col;
+  }
+  
+  .sidebar {
+    @apply w-full h-auto;
+  }
+}
+
+/* Code block icon visibility */
+.code-block-icons {
+  @apply opacity-0 transition-opacity duration-200;
+}
+
+.code-block:hover .code-block-icons {
+  @apply opacity-100;
+}
+
+.dark .code-block-icons {
+  @apply text-gray-400;
+}
+
+/* User message text color in dark mode */
+.dark .user-message {
+  @apply text-white;
 }
