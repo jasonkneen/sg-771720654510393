@@ -15,6 +15,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import useChatState from '@/hooks/useChatState';
 import useExportShare from '@/hooks/useExportShare';
+import useAIPersonality from '@/hooks/useAIPersonality';
 import { useToast } from '@/components/ui/use-toast';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
@@ -42,19 +43,28 @@ export default function Home() {
   } = useChatState({ darkMode: false, autoSave: true, fontSize: 'medium', language: 'en' });
 
   const { exportConversation, shareCodeSnippet } = useExportShare();
-  const { toast } = useToast();
-
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [aiPersonality, setAIPersonality] = useState({
+  const [aiPersonality, updateAIPersonality] = useAIPersonality({
     name: 'AI Assistant',
     tone: 50,
     verbosity: 50,
   });
+  const { toast } = useToast();
+
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.darkMode);
     document.documentElement.style.fontSize = settings.fontSize === 'small' ? '14px' : settings.fontSize === 'large' ? '18px' : '16px';
   }, [settings.darkMode, settings.fontSize]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -105,7 +115,7 @@ export default function Home() {
   };
 
   const handlePersonalityChange = (newPersonality) => {
-    setAIPersonality(newPersonality);
+    updateAIPersonality(newPersonality);
     toast({
       title: 'AI Personality Updated',
       description: `The AI personality has been updated to ${newPersonality.name}.`,
@@ -149,7 +159,17 @@ export default function Home() {
             />
             <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
               <AnimatePresence mode="wait">
-                {isSwitchingChat ? (
+                {isInitializing ? (
+                  <motion.div
+                    key="initializing"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex-1 flex items-center justify-center"
+                  >
+                    <p className="text-muted-foreground">Initializing chat...</p>
+                  </motion.div>
+                ) : isSwitchingChat ? (
                   <motion.div
                     key="loading"
                     initial={{ opacity: 0 }}
