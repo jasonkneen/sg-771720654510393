@@ -48,11 +48,11 @@ const ChatWindow = ({ messages }) => {
     return parts.map((part, index) => {
       if (part.type === 'code') {
         return (
-          <div key={index} className="relative my-2">
-            <pre className="p-4 bg-muted rounded-md">
+          <div key={index} className="relative my-4">
+            <pre className="p-6 bg-muted rounded-lg overflow-x-auto">
               <code className={`language-${part.language}`}>{part.content}</code>
             </pre>
-            <div className="absolute top-2 right-2 space-x-2">
+            <div className="absolute top-4 right-4 space-x-2">
               <CopyButton content={part.content} />
               <ShareButton content={part.content} />
             </div>
