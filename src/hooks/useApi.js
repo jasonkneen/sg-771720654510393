@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
-import logger from '@/utils/logger';
+import { handleError } from '@/utils/errorHandler';
 
 const useApi = () => {
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ const useApi = () => {
       return response.data;
     } catch (err) {
       setError(err);
-      logger.error('API request failed:', { error: err, config });
+      handleError(err, 'API request failed');
       toast({
         title: 'Error',
         description: 'An error occurred. Please try again.',
