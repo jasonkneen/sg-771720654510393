@@ -1,134 +1,59 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.css';
-import { Copy, Check, Share } from 'lucide-react';
+import ChatMessage from './ChatMessage';
 import WelcomeMessage from './WelcomeMessage';
+import useChatScroll from '@/hooks/useChatScroll';
 import performanceMonitor from '@/utils/performanceMonitor';
 import { logError } from '@/utils/errorLogger';
 
-const ChatWindow = React.memo(({ messages, onShare }) => {
-  const scrollAreaRef = useRef(null);
+const ChatWindow = React.memo(({ 
+  messages, 
+  onShare,
+  onEdit,
+  onDelete,
+  editingMessageId,
+  setEditingMessageId,
+  onAddReaction,
+  onRemoveReaction,
+  onReply
+}) => {
+  const chatContainerRef = useChatScroll(messages);
 
   useEffect(() => {
     performanceMonitor.start('ChatWindow-useEffect');
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo(0, scrollAreaRef.current.scrollHeight);
+    try {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTo(0, chatContainerRef.current.scrollHeight);
+      }
+    } catch (error) {
+      logError(error, { context: 'ChatWindow - useEffect' });
     }
-    hljs.highlightAll();
     performanceMonitor.end('ChatWindow-useEffect');
   }, [messages]);
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  const renderMessage = (message) => {
-    performanceMonitor.start('renderMessage');
-    const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = codeRegex.exec(message.content)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({ type: 'text', content: message.content.slice(lastIndex, match.index) });
-      }
-      parts.push({ type: 'code', language: match[1] || 'plaintext', content: match[2] });
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < message.content.length) {
-      parts.push({ type: 'text', content: message.content.slice(lastIndex) });
-    }
-
-    const result = parts.map((part, index) => {
-      if (part.type === 'code') {
-        return (
-          <div key={index} className="relative my-4 code-block">
-            <pre className="p-6 bg-black rounded-md overflow-x-auto">
-              <code className={`language-${part.language} text-sm`}>{part.content}</code>
-            </pre>
-            <div className="absolute top-2 right-2 space-x-2 code-block-icons">
-              <CopyButton content={part.content} />
-              <ShareButton content={part.content} onShare={onShare} />
-            </div>
-          </div>
-        );
-      }
-      return <p key={index} className="my-2">{part.content}</p>;
-    });
-    performanceMonitor.end('renderMessage');
-    return result;
-  };
-
-  const CopyButton = React.memo(({ content }) => {
-    const [copied, setCopied] = React.useState(false);
-
-    const handleCopy = () => {
-      copyToClipboard(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleCopy}
-        className="hover:bg-gray-700/50 p-1 text-gray-300"
-        aria-label={copied ? "Copied" : "Copy code"}
-      >
-        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-      </Button>
-    );
-  });
-
-  const ShareButton = React.memo(({ content, onShare }) => {
-    return (
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => onShare(content)}
-        className="hover:bg-gray-700/50 p-1 text-gray-300"
-        aria-label="Share code snippet"
-      >
-        <Share className="h-4 w-4" />
-      </Button>
-    );
-  });
-
   const memoizedMessages = useMemo(() => {
-    performanceMonitor.start('memoizedMessages');
+    performanceMonitor.start('ChatWindow-memoizedMessages');
     const result = messages.map((message, index) => (
-      <motion.div
-        key={index}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-      >
-        <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} group`}>
-          <Avatar className="w-8 h-8 mt-1">
-            <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
-            <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
-          </Avatar>
-          <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground dark:text-white user-message' : 'bg-muted'}`}>
-            {renderMessage(message)}
-          </div>
-        </div>
-      </motion.div>
+      <ChatMessage
+        key={message.id}
+        message={message}
+        onShare={onShare}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        isEditing={editingMessageId === message.id}
+        setEditingMessageId={setEditingMessageId}
+        onAddReaction={onAddReaction}
+        onRemoveReaction={onRemoveReaction}
+        onReply={onReply}
+      />
     ));
-    performanceMonitor.end('memoizedMessages');
+    performanceMonitor.end('ChatWindow-memoizedMessages');
     return result;
-  }, [messages, onShare]);
+  }, [messages, onShare, onEdit, onDelete, editingMessageId, setEditingMessageId, onAddReaction, onRemoveReaction, onReply]);
 
   return (
-    <ScrollArea className="flex-1 p-4 chat-background" ref={scrollAreaRef}>
+    <ScrollArea className="flex-1 p-4 chat-background" ref={chatContainerRef}>
       {messages.length === 0 ? (
         <WelcomeMessage />
       ) : (
