@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -26,11 +26,18 @@ import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import { handleComponentError } from '@/utils/componentErrorHandler';
+import { debounce } from '@/utils/debounce';
 
 const VirtualizedChatWindow = dynamic(() => import('@/components/VirtualizedChatWindow'), {
   loading: () => <LoadingState message="Loading Chat..." />,
   ssr: false,
 });
+
+const ChatBox = ({ children }) => (
+  <div className="flex flex-col flex-1 bg-background dark:bg-gray-900 overflow-hidden">
+    {children}
+  </div>
+);
 
 export default function Home() {
   const {
@@ -66,6 +73,8 @@ export default function Home() {
   const { settings: appSettings, updateSettings, aiPersonality, updateAIPersonality, colorScheme, updateColorScheme } = useAppContext();
   const { toast } = useToast();
   const api = useApi();
+
+  const [isChatVisible, setIsChatVisible] = useState(true);
 
   const handleKeyboardNavigation = useKeyboardNavigation(
     filteredChats.length,
@@ -117,6 +126,12 @@ export default function Home() {
     }
   };
 
+  const debouncedSearch = debounce(handleSearch, 300);
+
+  const handleChatVisibility = () => {
+    setIsChatVisible((prev) => !prev);
+  };
+
   return (
     <ErrorBoundary>
       <Layout>
@@ -152,65 +167,71 @@ export default function Home() {
             </AlertDialog>
           </Header>
           <div className="flex flex-1 overflow-hidden">
-            {showChatList && (
-              <div className="w-64 bg-background border-r border-border">
-                <ChatList
-                  chats={filteredChats}
-                  currentChatIndex={currentChatIndex}
-                  onSelectChat={handleSelectChat}
-                  onDeleteChat={handleDeleteChat}
-                  onRenameChat={handleRenameChat}
-                  onKeyDown={handleKeyboardNavigation}
-                />
-              </div>
-            )}
-            <div className="flex flex-col flex-1 bg-background dark:bg-gray-900">
-              <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={handleSearch} />
-              <div className="flex-1 overflow-hidden">
-                <AnimatePresence mode="wait">
-                  {isCreatingChat || isSwitchingChat ? (
-                    <motion.div
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="h-full flex items-center justify-center"
-                    >
-                      <LoadingState message={isCreatingChat ? "Creating new chat..." : "Loading chat..."} />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="chat"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="h-full"
-                    >
-                      <VirtualizedChatWindow 
-                        messages={chatHistory[currentChatIndex].messages} 
-                        onShare={handleShare}
-                        isLoading={isLoading}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              {isLoading && (
-                <Progress value={progress} className="w-full" />
+            <ErrorBoundary>
+              {showChatList && (
+                <div className="w-64 bg-background border-r border-border">
+                  <ChatList
+                    chats={filteredChats}
+                    currentChatIndex={currentChatIndex}
+                    onSelectChat={handleSelectChat}
+                    onDeleteChat={handleDeleteChat}
+                    onRenameChat={handleRenameChat}
+                    onKeyDown={handleKeyboardNavigation}
+                  />
+                </div>
               )}
-              <div className="mt-auto">
-                <ChatInput
-                  input={input}
-                  setInput={setInput}
-                  handleSend={handleSend}
-                  isLoading={isLoading}
-                  maxLength={500}
-                />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ChatBox>
+                <ChatSearch messages={chatHistory[currentChatIndex].messages} onSearchResult={debouncedSearch} />
+                <div className="flex-1 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    {isCreatingChat || isSwitchingChat ? (
+                      <motion.div
+                        key="loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="h-full flex items-center justify-center"
+                      >
+                        <LoadingState message={isCreatingChat ? "Creating new chat..." : "Loading chat..."} />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="chat"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className={`h-full ${isChatVisible ? '' : 'hidden'}`}
+                      >
+                        <VirtualizedChatWindow 
+                          messages={chatHistory[currentChatIndex].messages} 
+                          onShare={handleShare}
+                          isLoading={isLoading}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                {isLoading && (
+                  <Progress value={progress} className="w-full" />
+                )}
+                <div className="mt-auto">
+                  <ChatInput
+                    input={input}
+                    setInput={setInput}
+                    handleSend={handleSend}
+                    isLoading={isLoading}
+                    maxLength={500}
+                  />
+                </div>
+              </ChatBox>
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <div className="w-64 p-4 border-l border-border">
+                <AIPersonalityDisplay personality={aiPersonality} />
               </div>
-            </div>
-            <div className="w-64 p-4 border-l border-border">
-              <AIPersonalityDisplay personality={aiPersonality} />
-            </div>
+            </ErrorBoundary>
           </div>
         </div>
         <OnboardingTutorial />
