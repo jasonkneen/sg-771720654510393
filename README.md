@@ -35,6 +35,24 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - Customizable AI personality
 - Export and share functionality
 
+## Rebuilding and Clearing Cache
+
+To perform a full rebuild and clear the cache, use the following command:
+
+```bash
+npm run rebuild
+# or
+yarn rebuild
+```
+
+This command will:
+1. Remove the `.next` directory
+2. Clear the Node modules cache
+3. Reinstall all dependencies
+4. Rebuild the application
+
+Use this command if you're experiencing unexpected behavior or after major updates.
+
 ## Testing
 
 To run the tests, use the following command:
