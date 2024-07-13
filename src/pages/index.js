@@ -1,10 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import ChatWindow from '@/components/ChatWindow';
 import ChatInput from '@/components/ChatInput';
 import { useToast } from '@/components/ui/use-toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
+  loading: () => <p>Loading chat...</p>,
+  ssr: false,
+});
 
 const simulateAIResponse = (message) => {
   return new Promise((resolve) => {
@@ -30,6 +36,7 @@ export default function Home() {
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSwitchingChat, setIsSwitchingChat] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +66,7 @@ export default function Home() {
           return newHistory;
         });
       } catch (error) {
+        console.error('Error getting AI response:', error);
         toast({
           title: 'Error',
           description: 'Failed to get AI response. Please try again.',
@@ -76,7 +84,9 @@ export default function Home() {
   }, [chatHistory.length]);
 
   const handleSelectChat = useCallback((index) => {
+    setIsSwitchingChat(true);
     setCurrentChatIndex(index);
+    setTimeout(() => setIsSwitchingChat(false), 300);
   }, []);
 
   useEffect(() => {
@@ -96,26 +106,36 @@ export default function Home() {
   }, [handleSend, handleNewChat]);
 
   return (
-    <Layout>
-      <div className="flex flex-col h-screen">
-        <Header />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar
-            chatHistory={chatHistory}
-            onNewChat={handleNewChat}
-            onSelectChat={handleSelectChat}
-          />
-          <div className="flex flex-col flex-1">
-            <ChatWindow messages={chatHistory[currentChatIndex].messages} />
-            <ChatInput
-              input={input}
-              setInput={setInput}
-              handleSend={handleSend}
-              isLoading={isLoading}
+    <ErrorBoundary>
+      <Layout>
+        <div className="flex flex-col h-screen">
+          <Header />
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar
+              chatHistory={chatHistory}
+              onNewChat={handleNewChat}
+              onSelectChat={handleSelectChat}
+              currentChatIndex={currentChatIndex}
             />
+            <div className="flex flex-col flex-1">
+              {isSwitchingChat ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-muted-foreground">Loading chat...</p>
+                </div>
+              ) : (
+                <ChatWindow messages={chatHistory[currentChatIndex].messages} />
+              )}
+              <ChatInput
+                input={input}
+                setInput={setInput}
+                handleSend={handleSend}
+                isLoading={isLoading}
+                maxLength={500}
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </ErrorBoundary>
   );
 }
