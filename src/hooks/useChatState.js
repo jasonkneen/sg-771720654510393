@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { saveChatSessions, loadChatSessions, clearChatSessions } from '@/utils/chatStorage';
 import useApi from './useApi';
+import { callOpenAI } from '@/utils/openai';
 
 export const useChatState = (initialSettings = { autoSave: true }) => {
   const [chatHistory, setChatHistory] = useState(() => loadChatSessions());
@@ -44,8 +45,10 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
       }, 200);
 
       try {
-        const response = await api.post('/api/chat', { message: input });
-        const aiMessage = { sender: 'ai', content: response.response };
+        const messages = chatHistory[currentChatIndex].messages.concat(userMessage);
+        const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+        const aiResponse = await callOpenAI(messages, apiKey);
+        const aiMessage = { sender: 'ai', content: aiResponse };
         setChatHistory((prev) => {
           const newHistory = [...prev];
           newHistory[currentChatIndex] = {

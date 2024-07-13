@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { callOpenAI } from '@/utils/openai';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const { message } = req.body;
+      const { messages } = req.body;
+      const apiKey = process.env.OPENAI_API_KEY;
       
-      // Simulate AI response (replace with actual AI integration)
-      const aiResponse = `AI response to: "${message}"`;
+      const aiResponse = await callOpenAI(messages, apiKey);
       
       res.status(200).json({ response: aiResponse });
     } catch (error) {
