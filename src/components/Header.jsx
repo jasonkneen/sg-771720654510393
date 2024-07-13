@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Moon, Sun, Download, RefreshCw, Search, ChevronDown } from 'lucide-react';
+import { Moon, Sun, Download, RefreshCw, Search, ChevronDown, PlusCircle } from 'lucide-react';
 
 const Header = ({ onExport, onNewChat, searchTerm, setSearchTerm, showChatList, setShowChatList, children }) => {
   const { theme, setTheme } = useTheme();

@@ -15,6 +15,7 @@ function clearLocalStorage() {
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [isServerHealthy, setIsServerHealthy] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     clearLocalStorage();
@@ -42,15 +43,26 @@ export default function App({ Component, pageProps }) {
       console.log(`App is changing to ${url}`);
     };
 
+    const handleError = (error) => {
+      console.error('App error:', error);
+      setError(error);
+    };
+
     router.events.on('routeChangeStart', handleRouteChange);
+    router.events.on('error', handleError);
 
     return () => {
       router.events.off('routeChangeStart', handleRouteChange);
+      router.events.off('error', handleError);
     };
   }, [router.events]);
 
   if (!isServerHealthy) {
     return <div>Server is currently unavailable. Please try again later.</div>;
+  }
+
+  if (error) {
+    return <div>An error occurred: {error.message}</div>;
   }
 
   return (

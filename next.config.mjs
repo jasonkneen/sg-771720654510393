@@ -34,6 +34,11 @@ const nextConfig = {
       }
     };
 
+    // Enable source maps in development
+    if (!isServer) {
+      config.devtool = 'source-map';
+    }
+
     return config;
   },
 };
