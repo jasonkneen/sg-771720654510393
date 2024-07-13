@@ -4,8 +4,13 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import ChatInput from '@/components/ChatInput';
+import SettingsMenu from '@/components/SettingsMenu';
+import HelpModal from '@/components/HelpModal';
 import { useToast } from '@/components/ui/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import logError from '@/utils/errorLogger';
 
 const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
   loading: () => <p>Loading chat...</p>,
@@ -37,13 +42,14 @@ export default function Home() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchingChat, setIsSwitchingChat] = useState(false);
+  const [settings, setSettings] = useState({ darkMode: false, autoSave: true });
   const { toast } = useToast();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && settings.autoSave) {
       localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
     }
-  }, [chatHistory]);
+  }, [chatHistory, settings.autoSave]);
 
   const handleSend = useCallback(async (e) => {
     e.preventDefault();
@@ -66,7 +72,7 @@ export default function Home() {
           return newHistory;
         });
       } catch (error) {
-        console.error('Error getting AI response:', error);
+        logError(error, { context: 'AI Response' });
         toast({
           title: 'Error',
           description: 'Failed to get AI response. Please try again.',
@@ -110,7 +116,29 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [chatHistory, currentChatIndex]);
+    toast({
+      title: 'Chat Exported',
+      description: 'Your chat has been successfully exported.',
+    });
+  }, [chatHistory, currentChatIndex, toast]);
+
+  const handleClearHistory = useCallback(() => {
+    setChatHistory([{ id: 1, name: 'New Chat', messages: [] }]);
+    setCurrentChatIndex(0);
+    toast({
+      title: 'Chat History Cleared',
+      description: 'Your chat history has been cleared.',
+    });
+  }, [toast]);
+
+  const handleSettingsChange = useCallback((newSettings) => {
+    setSettings(newSettings);
+    if (newSettings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -122,6 +150,9 @@ export default function Home() {
       } else if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         handleExportChat();
+      } else if (e.key === '/' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        // Open help modal
       }
     };
 
@@ -135,7 +166,27 @@ export default function Home() {
     <ErrorBoundary>
       <Layout>
         <div className="flex flex-col h-screen">
-          <Header onExport={handleExportChat} />
+          <Header onExport={handleExportChat}>
+            <SettingsMenu settings={settings} onSettingsChange={handleSettingsChange} />
+            <HelpModal />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Clear History</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your chat history.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearHistory}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </Header>
           <div className="flex flex-1 overflow-hidden">
             <Sidebar
               chatHistory={chatHistory}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/toaster';
 
 const Layout = ({ children }) => {
   return (
@@ -7,6 +8,7 @@ const Layout = ({ children }) => {
       <div className="flex h-screen bg-background text-foreground">
         {children}
       </div>
+      <Toaster />
     </ThemeProvider>
   );
 };
