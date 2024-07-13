@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -8,19 +8,12 @@ import 'highlight.js/styles/github-dark.css';
 import { Copy, Check, Share } from 'lucide-react';
 import WelcomeMessage from './WelcomeMessage';
 
-let List, AutoSizer;
-if (typeof window !== 'undefined') {
-  List = require('react-window').FixedSizeList;
-  AutoSizer = require('react-virtualized-auto-sizer').default;
-}
-
-const ChatWindow = React.memo(({ messages, onShare }) => {
+const ChatWindow = ({ messages, onShare }) => {
   const scrollAreaRef = useRef(null);
-  const listRef = useRef(null);
 
   useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollToItem(messages.length - 1, 'end');
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo(0, scrollAreaRef.current.scrollHeight);
     }
     hljs.highlightAll();
   }, [messages]);
@@ -101,70 +94,38 @@ const ChatWindow = React.memo(({ messages, onShare }) => {
     );
   });
 
-  const MessageItem = React.memo(({ index, style }) => {
-    const message = messages[index];
-    return (
-      <div style={style}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-        >
-          <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} group`}>
-            <Avatar className="w-8 h-8 mt-1">
-              <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
-              <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
-            </Avatar>
-            <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
-              {renderMessage(message)}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    );
-  });
-
-  const memoizedMessageList = useMemo(() => {
-    if (!List || !AutoSizer) {
-      return (
-        <div className="space-y-4">
-          {messages.map((message, index) => (
-            <MessageItem key={index} index={index} style={{}} />
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <AutoSizer>
-        {({ height, width }) => (
-          <List
-            ref={listRef}
-            height={height}
-            itemCount={messages.length}
-            itemSize={100}
-            width={width}
-          >
-            {MessageItem}
-          </List>
-        )}
-      </AutoSizer>
-    );
-  }, [messages, List, AutoSizer]);
-
   return (
     <ScrollArea className="flex-1 p-4 chat-background" ref={scrollAreaRef}>
       {messages.length === 0 ? (
         <WelcomeMessage />
       ) : (
-        memoizedMessageList
+        <div className="space-y-4">
+          <AnimatePresence>
+            {messages.map((message, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} group`}>
+                  <Avatar className="w-8 h-8 mt-1">
+                    <AvatarImage src={message.sender === 'user' ? '/api/placeholder/32/32' : '/api/placeholder/32/32'} alt={message.sender === 'user' ? 'User Avatar' : 'AI Avatar'} />
+                    <AvatarFallback>{message.sender === 'user' ? 'U' : 'AI'}</AvatarFallback>
+                  </Avatar>
+                  <div className={`mx-2 px-3 py-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground user-message' : 'bg-muted'}`}>
+                    {renderMessage(message)}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       )}
     </ScrollArea>
   );
-});
-
-ChatWindow.displayName = 'ChatWindow';
+};
 
 export default ChatWindow;

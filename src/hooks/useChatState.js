@@ -30,7 +30,7 @@ export const useChatState = (initialSettings = { autoSave: true }) => {
     if (settings.autoSave) {
       saveChatSessions(chatHistory);
     }
-  }, [chatHistory, settings]);
+  }, [chatHistory, settings.autoSave]);
 
   const handleSend = useCallback(async (e) => {
     e.preventDefault();
