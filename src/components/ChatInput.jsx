@@ -6,6 +6,7 @@ import { debounce } from '@/utils/debounce';
 import { handleComponentError } from '@/utils/componentErrorHandler';
 import performanceMonitor from '@/utils/performanceMonitor';
 import { logError } from '@/utils/errorLogger';
+import debugLogger from '@/utils/debugLogger';
 
 const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) => {
   const [localInput, setLocalInput] = useState(input);
@@ -18,7 +19,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
   const debouncedSetInput = useCallback(
     debounce((value) => {
       performanceMonitor.start('debouncedSetInput');
-      console.log('Debounced setInput called with:', value);
+      debugLogger.log('Debounced setInput called with:', value);
       setInput(value);
       performanceMonitor.end('debouncedSetInput');
     }, 100),
@@ -28,7 +29,7 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
   const handleInputChange = (e) => {
     performanceMonitor.start('handleInputChange');
     const value = e.target.value;
-    console.log('Input changed:', value);
+    debugLogger.log('Input changed:', value);
     setLocalInput(value);
     debouncedSetInput(value);
     performanceMonitor.end('handleInputChange');
@@ -39,13 +40,14 @@ const ChatInput = ({ input, setInput, handleSend, isLoading, maxLength = 500 }) 
     performanceMonitor.start('handleSubmit');
     if (localInput.trim() && !isLoading) {
       try {
-        console.log('Submitting message:', localInput);
+        debugLogger.log('Submitting message:', localInput);
         handleSend(e);
         setLocalInput('');
         inputRef.current?.focus();
       } catch (error) {
         handleComponentError(error, 'Error sending message');
         logError(error, { context: 'ChatInput - handleSubmit' });
+        debugLogger.error('Error in handleSubmit:', error);
       }
     }
     performanceMonitor.end('handleSubmit');
