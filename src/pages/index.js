@@ -2,13 +2,14 @@ import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
+import CollapsibleSidebar from '@/components/CollapsibleSidebar';
 import ChatInput from '@/components/ChatInput';
 import SettingsMenu from '@/components/SettingsMenu';
 import HelpModal from '@/components/HelpModal';
 import { useToast } from '@/components/ui/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logError from '@/utils/errorLogger';
 
@@ -43,6 +44,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchingChat, setIsSwitchingChat] = useState(false);
   const [settings, setSettings] = useState({ darkMode: false, autoSave: true });
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function Home() {
     e.preventDefault();
     if (input.trim() && !isLoading) {
       setIsLoading(true);
+      setProgress(0);
       const userMessage = { sender: 'user', content: input };
       setChatHistory((prev) => {
         const newHistory = [...prev];
@@ -62,6 +65,13 @@ export default function Home() {
         return newHistory;
       });
       setInput('');
+
+      const progressInterval = setInterval(() => {
+        setProgress((prevProgress) => {
+          const newProgress = prevProgress + 10;
+          return newProgress >= 100 ? 100 : newProgress;
+        });
+      }, 200);
 
       try {
         const aiResponse = await simulateAIResponse(input);
@@ -79,7 +89,12 @@ export default function Home() {
           variant: 'destructive',
         });
       } finally {
-        setIsLoading(false);
+        clearInterval(progressInterval);
+        setProgress(100);
+        setTimeout(() => {
+          setIsLoading(false);
+          setProgress(0);
+        }, 500);
       }
     }
   }, [input, isLoading, currentChatIndex, toast]);
@@ -165,7 +180,7 @@ export default function Home() {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen w-full">
           <Header onExport={handleExportChat}>
             <SettingsMenu settings={settings} onSettingsChange={handleSettingsChange} />
             <HelpModal />
@@ -188,7 +203,7 @@ export default function Home() {
             </AlertDialog>
           </Header>
           <div className="flex flex-1 overflow-hidden">
-            <Sidebar
+            <CollapsibleSidebar
               chatHistory={chatHistory}
               onNewChat={handleNewChat}
               onSelectChat={handleSelectChat}
@@ -202,6 +217,9 @@ export default function Home() {
                 </div>
               ) : (
                 <ChatWindow messages={chatHistory[currentChatIndex].messages} />
+              )}
+              {isLoading && (
+                <Progress value={progress} className="w-full" />
               )}
               <ChatInput
                 input={input}

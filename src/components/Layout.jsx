@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 const Layout = ({ children }) => {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <div className="flex h-screen bg-background text-foreground">
+      <div className="w-full min-h-screen bg-background text-foreground">
         {children}
       </div>
       <Toaster />
