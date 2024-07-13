@@ -106,3 +106,45 @@
 .hover-scale:hover {
   transform: scale(1.05);
 }
+
+/* Custom styles for code blocks */
+pre {
+  @apply p-4 rounded-lg overflow-x-auto;
+}
+
+code {
+  @apply text-sm;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
+
+/* Custom focus styles */
+:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+/* Custom selection styles */
+::selection {
+  @apply bg-primary/20 text-primary-foreground;
+}
+
+/* Dark mode chat background */
+.dark .chat-background {
+  @apply bg-gray-800;
+}

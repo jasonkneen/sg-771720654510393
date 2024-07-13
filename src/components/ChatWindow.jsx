@@ -50,7 +50,7 @@ const ChatWindow = ({ messages }) => {
         return (
           <div key={index} className="relative my-4">
             <pre className="p-6 bg-muted rounded-lg overflow-x-auto">
-              <code className={`language-${part.language}`}>{part.content}</code>
+              <code className={`language-${part.language} text-sm`}>{part.content}</code>
             </pre>
             <div className="absolute top-4 right-4 space-x-2">
               <CopyButton content={part.content} />
@@ -77,6 +77,7 @@ const ChatWindow = ({ messages }) => {
         size="sm"
         variant="ghost"
         onClick={handleCopy}
+        className="hover:bg-background/50"
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
@@ -89,6 +90,7 @@ const ChatWindow = ({ messages }) => {
         size="sm"
         variant="ghost"
         onClick={() => shareSnippet(content)}
+        className="hover:bg-background/50"
       >
         <Share className="h-4 w-4" />
       </Button>
@@ -96,7 +98,7 @@ const ChatWindow = ({ messages }) => {
   };
 
   return (
-    <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+    <ScrollArea className="flex-1 p-4 chat-background" ref={scrollAreaRef}>
       {messages.length === 0 ? (
         <WelcomeMessage />
       ) : (
