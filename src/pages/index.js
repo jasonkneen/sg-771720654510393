@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useChatState from '@/hooks/useChatState';
 import useExportShare from '@/hooks/useExportShare';
 import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
+import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 import logger from '@/utils/logger';
@@ -62,6 +63,7 @@ export default function Home() {
   const { exportConversation, shareCodeSnippet } = useExportShare();
   const { settings: appSettings, updateSettings, aiPersonality, updateAIPersonality, colorScheme, updateColorScheme } = useAppContext();
   const { toast } = useToast();
+  const api = useApi();
 
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -87,12 +89,8 @@ export default function Home() {
   useEffect(() => {
     const checkServerStatus = async () => {
       try {
-        const response = await fetch('/api/health');
-        if (!response.ok) {
-          setIsServerError(true);
-        } else {
-          setIsServerError(false);
-        }
+        const response = await api.get('/api/health');
+        setIsServerError(false);
       } catch (error) {
         setIsServerError(true);
         logger.error('Server health check failed:', error);
@@ -103,11 +101,15 @@ export default function Home() {
     const intervalId = setInterval(checkServerStatus, 60000); // Check every minute
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [api]);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     try {
-      exportConversation(chatHistory[currentChatIndex]);
+      await exportConversation(chatHistory[currentChatIndex]);
+      toast({
+        title: 'Export Successful',
+        description: 'Your conversation has been exported successfully.',
+      });
     } catch (error) {
       logger.error('Error exporting conversation:', { error });
       toast({
@@ -118,9 +120,13 @@ export default function Home() {
     }
   };
 
-  const handleShare = (snippet) => {
+  const handleShare = async (snippet) => {
     try {
-      shareCodeSnippet(snippet);
+      await shareCodeSnippet(snippet);
+      toast({
+        title: 'Share Successful',
+        description: 'Your code snippet has been shared successfully.',
+      });
     } catch (error) {
       logger.error('Error sharing code snippet:', { error });
       toast({
