@@ -6,6 +6,7 @@ import { OPENAI_CONFIG } from '@/config/openai';
 import { handleError } from '@/utils/errorHandler';
 import performanceMonitor from '@/utils/performanceMonitor';
 import { logError } from '@/utils/errorLogger';
+import debugLogger from '@/utils/debugLogger';
 
 export const useChatState = (initialSettings = { autoSave: true, debugMode: false }) => {
   performanceMonitor.start('useChatState');
@@ -28,7 +29,7 @@ export const useChatState = (initialSettings = { autoSave: true, debugMode: fals
   useEffect(() => {
     chatHistoryRef.current = chatHistory;
     if (settings.debugMode) {
-      console.log('Chat history updated:', chatHistory);
+      debugLogger.log('Chat history updated:', chatHistory);
     }
   }, [chatHistory, settings.debugMode]);
 
@@ -38,7 +39,7 @@ export const useChatState = (initialSettings = { autoSave: true, debugMode: fals
       saveChatSessions(chatHistory);
       performanceMonitor.end('saveChatSessions');
       if (settings.debugMode) {
-        console.log('Chat sessions saved:', chatHistory);
+        debugLogger.log('Chat sessions saved:', chatHistory);
       }
     }
   }, [chatHistory, settings.autoSave, settings.debugMode]);
@@ -49,7 +50,7 @@ export const useChatState = (initialSettings = { autoSave: true, debugMode: fals
       const newHistory = updater(prevHistory);
       chatHistoryRef.current = newHistory;
       if (settings.debugMode) {
-        console.log('Chat history updated:', newHistory);
+        debugLogger.log('Chat history updated:', newHistory);
       }
       return newHistory;
     });
@@ -104,7 +105,47 @@ export const useChatState = (initialSettings = { autoSave: true, debugMode: fals
     }
   }, [input, isLoading, updateChatHistory, currentChatIndex, chatHistory, toast]);
 
-  // ... (rest of the code remains the same)
+  const handleNewChat = useCallback(() => {
+    setIsCreatingChat(true);
+    const newChat = { id: Date.now(), name: `Chat ${chatHistory.length + 1}`, messages: [] };
+    updateChatHistory((prevHistory) => [...prevHistory, newChat]);
+    setCurrentChatIndex(chatHistory.length);
+    setIsCreatingChat(false);
+  }, [chatHistory.length, updateChatHistory]);
+
+  const handleSelectChat = useCallback((index) => {
+    setIsSwitchingChat(true);
+    setCurrentChatIndex(index);
+    setIsSwitchingChat(false);
+  }, []);
+
+  const handleRenameChat = useCallback((index, newName) => {
+    updateChatHistory((prevHistory) => {
+      const updatedHistory = [...prevHistory];
+      updatedHistory[index].name = newName;
+      return updatedHistory;
+    });
+  }, [updateChatHistory]);
+
+  const handleDeleteChat = useCallback((index) => {
+    updateChatHistory((prevHistory) => {
+      const updatedHistory = prevHistory.filter((_, i) => i !== index);
+      return updatedHistory;
+    });
+    if (currentChatIndex >= index) {
+      setCurrentChatIndex((prevIndex) => Math.max(0, prevIndex - 1));
+    }
+  }, [updateChatHistory, currentChatIndex]);
+
+  const handleClearHistory = useCallback(() => {
+    clearChatSessions();
+    setChatHistory([{ id: Date.now(), name: 'New Chat', messages: [] }]);
+    setCurrentChatIndex(0);
+  }, []);
+
+  const handleSettingsChange = useCallback((newSettings) => {
+    setSettings((prevSettings) => ({ ...prevSettings, ...newSettings }));
+  }, []);
 
   performanceMonitor.end('useChatState');
   return {
