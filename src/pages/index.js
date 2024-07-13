@@ -21,7 +21,7 @@ import useKeyboardNavigation from '@/hooks/useKeyboardNavigation';
 import useApi from '@/hooks/useApi';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/components/ui/use-toast';
-import logger from '@/utils/logger';
+import { handleError } from '@/utils/errorHandler';
 
 const CodeDiffViewer = dynamic(() => import('@/components/CodeDiffViewer'), {
   ssr: false,
@@ -100,7 +100,7 @@ export default function Home() {
         setIsServerError(false);
       } catch (error) {
         setIsServerError(true);
-        logger.error('Server health check failed:', error);
+        handleError(error, 'Server health check failed');
       }
     };
 
@@ -118,7 +118,7 @@ export default function Home() {
         description: 'Your conversation has been exported successfully.',
       });
     } catch (error) {
-      logger.error('Error exporting conversation:', { error });
+      handleError(error, 'Error exporting conversation');
       toast({
         title: 'Export Failed',
         description: 'An error occurred while exporting the conversation. Please try again.',
@@ -135,7 +135,7 @@ export default function Home() {
         description: 'Your code snippet has been shared successfully.',
       });
     } catch (error) {
-      logger.error('Error sharing code snippet:', { error });
+      handleError(error, 'Error sharing code snippet');
       toast({
         title: 'Share Failed',
         description: 'An error occurred while sharing the code snippet. Please try again.',
